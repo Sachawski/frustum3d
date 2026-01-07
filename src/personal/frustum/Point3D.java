@@ -1,9 +1,19 @@
-package personal;
+package personal.frustum;
 
 public record Point3D(Integer x, Integer y, Integer z) {
 
+    private static final int focal = 500;
+
     public Point3D add(Point3D point) {
         return new Point3D(this.x() + point.x(), this.y() + point.y(), this.z() + point.z());
+    }
+
+    public Point3D substract(Point3D point) {
+        return new Point3D(this.x() - point.x(), this.y() - point.y(), this.z() - point.z());
+    }
+
+    public Point3D scale(Integer scale) {
+        return new Point3D(scale*this.x(), scale*this.y(), scale*this.z());
     }
 
     // public Point3D projection(Point3D point) {
@@ -14,7 +24,7 @@ public record Point3D(Integer x, Integer y, Integer z) {
    public Point3D perspective() {
         Integer depth = this.z();
         if (depth != 0) {
-            return new Point3D(this.x()/depth, this.y()/depth,depth);
+            return new Point3D(this.x()*focal/depth, this.y()*focal/depth,depth);
         } else {
             return new Point3D(this.x(), this.y(),depth);
         }

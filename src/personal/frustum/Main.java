@@ -1,4 +1,4 @@
-package personal;
+package personal.frustum;
 
 import javax.swing.JFrame;
 
@@ -6,7 +6,7 @@ public class Main extends JFrame{
 
     public static void main(String[] args) {
 
-        MovementManager3D movement = new MovementManager3D();
+        CameraManager3D movement = new CameraManager3D();
         int size = 1000;
         JFrame frame = new JFrame("Lines");
         frame.setSize(size,size);
@@ -18,18 +18,18 @@ public class Main extends JFrame{
 
         while (true) {
             Cube cube = new Cube(
-                new Point3D(-1000, -1000, 2),
-                new Point3D(0, -1000, 2),
-                new Point3D(0, 0, 2),
-                new Point3D(-1000, 0, 2),
-                new Point3D(-1000, -1000, 3),
-                new Point3D(0, -1000, 3),
-                new Point3D(0, 0, 3),
-                new Point3D(-1000, 0, 3)
+                new Point3D(500, 1000, -500),
+                new Point3D(-500, 1000, -500),
+                new Point3D(-500, 0, -500),
+                new Point3D(500, 0, -500),
+                new Point3D(500, 1000, -1500),
+                new Point3D(-500, 1000, -1500),
+                new Point3D(-500, 0, -1500),
+                new Point3D(500, 0, -1500)
             );
 
 
-            Point3D position = new Point3D(movement.posX + size/2 ,movement.posY + size/2 , movement.posZ);
+            Point3D position = new Point3D(movement.posX, movement.posY, movement.posZ);
 
             Panel panel = new Panel(ref, cube, position);
 
