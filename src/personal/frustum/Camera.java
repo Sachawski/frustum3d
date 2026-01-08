@@ -61,8 +61,8 @@ public class Camera implements KeyListener {
 
     private Matrix createViewMatrix() {
 
-        Matrix rotation = Matrix.rotationY(Math.toRadians(yaw))
-                                .multiply(Matrix.rotationX(Math.toRadians(pitch)));
+        Matrix rotation = Matrix.rotationX(Math.toRadians(yaw))
+                                .multiply(Matrix.rotationY(Math.toRadians(pitch)));
 
         Matrix translation = Matrix.translation(-posX, -posY, -posZ);
 
