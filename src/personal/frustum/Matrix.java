@@ -1,5 +1,7 @@
 package personal.frustum;
 
+// MADE WITH AI FOR SIMPLICITY
+
 public class Matrix {
     private final double[][] elements;
     private static final int SIZE = 4;

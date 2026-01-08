@@ -6,13 +6,13 @@ public class Main extends JFrame{
 
     public static void main(String[] args) {
 
-        CameraManager3D movement = new CameraManager3D();
+        Camera camera = new Camera(0,500,0,0,0);
         int size = 1000;
         JFrame frame = new JFrame("Lines");
         frame.setSize(size,size);
         frame.setLocation(0,0);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.addKeyListener(movement);
+        frame.addKeyListener(camera);
         
         Referentiel ref = new Referentiel(size/2,size/2);
 
@@ -28,10 +28,7 @@ public class Main extends JFrame{
                 new Point3D(500, 0, -1500)
             );
 
-
-            Point3D position = new Point3D(movement.posX, movement.posY, movement.posZ);
-
-            Panel panel = new Panel(ref, cube, position);
+            Panel panel = new Panel(ref, cube, camera);
 
             frame.setContentPane(panel);
 

@@ -2,7 +2,7 @@ package personal.frustum;
 
 public record Point3D(Integer x, Integer y, Integer z) {
 
-    private static final int focal = 500;
+    private static final int focal = 1;
 
     public Point3D add(Point3D point) {
         return new Point3D(this.x() + point.x(), this.y() + point.y(), this.z() + point.z());

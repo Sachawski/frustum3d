@@ -10,18 +10,18 @@ public class Panel extends JPanel {
 
     Referentiel ref;
     Form form;
-    Point3D cameraPosition;
+    Camera camera;
 
-    public Panel(Referentiel ref, Form form, Point3D cameraPosition) {
+    public Panel(Referentiel ref, Form form, Camera camera) {
         this.ref = ref;
         this.form = form; 
-        this.cameraPosition = cameraPosition;
+        this.camera = camera;
     }
 
-    public Panel(Form form, Point3D cameraPosition) {
+    public Panel(Form form, Camera camera) {
         this.ref = new Referentiel(0, 0);
         this.form = form; 
-        this.cameraPosition = cameraPosition;
+        this.camera = camera;
     }
 
     @Override
@@ -30,14 +30,22 @@ public class Panel extends JPanel {
 
         List<Point3D> projection = new ArrayList<>();
 
-        List<Point3D> points = form.getPoints();
+        Point3D cameraPosition = new Point3D(camera.getPosX(), camera.getPosY(), camera.getPosZ());
 
-        for (Point3D point : points) {
-            if (isPointVisible(point)) {
-                Point3D newPoint3D = point.substract(cameraPosition);
-                projection.add(newPoint3D.perspective());
-            }
+        // for (Point3D point : form.getPoints()) {
+        //     if (isPointVisible(point)) {
+        //         Point3D newPoint3D = point.substract(cameraPosition);
+        //         projection.add(newPoint3D.perspective());
+        //     }
+        // }
+
+        Matrix mvpMatrix = camera.createMVPMatrix();
+
+        for (Point3D point : form.getPoints()) {
+            Point3D transformed = mvpMatrix.multiply(point);
+            projection.add(transformed);
         }
+
 
         Integer[][] visibilityGraph = form.getGraph();
 
@@ -46,9 +54,9 @@ public class Panel extends JPanel {
                 if (visibilityGraph[i][j] == 1) {
                     g.drawLine(
                         ref.x() - projection.get(i).x(),
-                        ref.y() - projection.get(i).y(),
+                        ref.y() + projection.get(i).y(),
                         ref.x() - projection.get(j).x(),
-                        ref.y() - projection.get(j).y()
+                        ref.y() + projection.get(j).y()
                         );
                 }
             }
@@ -56,6 +64,15 @@ public class Panel extends JPanel {
     }
 
     private boolean isPointVisible(Point3D point) {
-        return (cameraPosition.z() > point.z());
+        return (camera.getPosZ() > point.z());
     }
+
+    private boolean isPointInFrustum(Point3D point) {
+    // NDC coordinates should be within [-1, +1] range
+    return point.x() >= -1 && point.x() <= 1 &&
+           point.y() >= -1 && point.y() <= 1 &&
+           point.z() >= 0 && point.z() <= 1;
+    }
+    
+
 }
