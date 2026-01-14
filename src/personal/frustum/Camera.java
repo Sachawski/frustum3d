@@ -120,7 +120,7 @@ public class Camera implements KeyListener, MouseMotionListener {
             Math.cos(radianPitch) * Math.cos(radianYaw)
         ).normalize();
 
-        Point3D right = worldUp.vectorialProduct(forward).normalize();
+        Point3D right = forward.vectorialProduct(worldUp).normalize();
 
         Point3D up = right.vectorialProduct(forward).normalize();
 
@@ -131,17 +131,18 @@ public class Camera implements KeyListener, MouseMotionListener {
             this.position = this.position.add(right.scale(-50));        
         }
         if ( KeyEvent.VK_Z == keyCode) {
-            this.position = this.position.add(forward.scale(-50));        
-        }
-        if ( KeyEvent.VK_S == keyCode) {
             this.position = this.position.add(forward.scale(50));        
         }
+        if ( KeyEvent.VK_S == keyCode) {
+            this.position = this.position.add(forward.scale(-50));        
+        }
         if ( KeyEvent.VK_SPACE == keyCode) {
-            this.position = this.position.add(up.scale(-50));  
+            this.position = this.position.add(up.scale(50));  
         }
         if ( KeyEvent.VK_T == keyCode) {
-            this.position = this.position.add(up.scale(50));         
+            this.position = this.position.add(up.scale(-50));         
         }
+        System.out.println(this.position.toString());
     }
 
     @Override
@@ -152,12 +153,17 @@ public class Camera implements KeyListener, MouseMotionListener {
     public void mouseDragged(MouseEvent e) {
         double newMouseX = e.getX();
         double newMouseY = e.getY();
-        if (newMouseY > this.mouseY) {
-            this.setPitch(this.getPitch() + 1);
+        if (pitch < 89) {
+            if (newMouseY > this.mouseY) {
+                this.setPitch(this.getPitch() + 1);
+            }
         }
-        if (newMouseY < this.mouseY) {
-            this.setPitch(this.getPitch() - 1);
+        if (pitch > -89) {
+            if (newMouseY < this.mouseY) {
+                this.setPitch(this.getPitch() - 1);
+            }
         }
+
         if (newMouseX < this.mouseX) {
             this.setYaw(this.getYaw() + 1);
         }
@@ -166,6 +172,10 @@ public class Camera implements KeyListener, MouseMotionListener {
         }
         this.mouseX = newMouseX;
         this.mouseY = newMouseY;
+
+        System.out.println("Yaw :" + yaw);        
+
+
     }
 
     @Override

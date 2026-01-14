@@ -78,4 +78,8 @@ public class Point3D {
             this.getPosX()*point.getPosY() - this.getPosY()*point.getPosX()
         );
     }
+
+    public String toString(){
+        return "Point3D(" + this.posX + "," + this.posY + "," + this.posZ + ")";
+    }
 }

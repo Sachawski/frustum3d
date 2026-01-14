@@ -91,10 +91,14 @@ public class Matrix {
         double newZ = this.get(2, 0) * x + this.get(2, 1) * y + this.get(2, 2) * z + this.get(2, 3) * w;
         double newW = this.get(3, 0) * x + this.get(3, 1) * y + this.get(3, 2) * z + this.get(3, 3) * w;
 
-        if (newW != 0.0) {
+        if (newW > 0.0) {
             newX /= newW;
             newY /= newW;
             newZ /= newW;
+        } else {
+            newX = Double.NaN;
+            newY = Double.NaN;
+            newZ = Double.NaN;
         }
 
         return new Point3D(newX, newY, newZ);
