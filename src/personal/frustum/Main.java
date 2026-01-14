@@ -13,6 +13,7 @@ public class Main extends JFrame{
         frame.setLocation(0,0);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.addKeyListener(camera);
+        frame.addMouseMotionListener(camera);
         
         Referentiel ref = new Referentiel(size/2,size/2);
 

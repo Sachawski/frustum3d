@@ -53,6 +53,24 @@ public class Point3D {
     //     return new Point3D(scalarProduct*point.getPosX(), scalarProduct*point.getPosY(), scalarProduct*point.getPosZ());
     // }
 
+    public Point3D normalize() {
+        double magnitude = Math.sqrt(
+            Math.pow(this.getPosX(), 2) + 
+            Math.pow(this.getPosY(), 2) + 
+            Math.pow(this.getPosZ(), 2)
+        );
+        
+        if (magnitude == 0) {
+            return new Point3D(0, 0, 0);
+        }
+        
+        return new Point3D(
+            this.getPosX() / magnitude,
+            this.getPosY() / magnitude,
+            this.getPosZ() / magnitude
+        );
+    }
+
     public Point3D vectorialProduct(Point3D point) {
         return new Point3D(
             this.getPosY()*point.getPosZ() - this.getPosZ()*point.getPosY(),

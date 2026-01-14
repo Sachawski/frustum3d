@@ -2,13 +2,18 @@ package personal.frustum;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 
-public class Camera implements KeyListener {
+public class Camera implements KeyListener, MouseMotionListener {
 
-
-    private final Point3D position;
+    private Point3D position;
     private double yaw;
     private double pitch;
+    private double mouseX = 0;
+    private double mouseY = 0;
+
+    private static final Point3D worldUp = new Point3D(0,1,0);
 
     public Camera(double posX, double posY, double posZ, double yaw, double pitch) {
         this.position = new Point3D(posX, posY, posZ);
@@ -34,6 +39,14 @@ public class Camera implements KeyListener {
 
     public void setPitch(double newPitch) {
         this.pitch = newPitch;
+    }
+
+    public void setMouseX(double newMouseX) {
+        this.mouseX = newMouseX;
+    }
+
+    public void setMouseY(double newMouseY) {
+        this.mouseY = newMouseY;
     }
 
     public double getPosX() {
@@ -78,7 +91,7 @@ public class Camera implements KeyListener {
 
     public Matrix createMVPMatrix() {
         Matrix projection = createProjectionMatrix();
-        // Matrix view = createViewMatrix();
+
         Matrix view = createViewMatrix(
             position.getPosX(),
             position.getPosY(),
@@ -88,7 +101,6 @@ public class Camera implements KeyListener {
         );
         Matrix model = Matrix.identity(); // objects don't move
         
-        // MVP = Projection * View * Model
         return projection.multiply(view).multiply(model);
     }
 
@@ -99,48 +111,66 @@ public class Camera implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         int keyCode = e.getKeyCode();
-        if ( KeyEvent.VK_D == keyCode) {
-            this.setPosX(this.getPosX() + 50);
+        double radianYaw = Math.toRadians(yaw);
+        double radianPitch = Math.toRadians(pitch);
+        
+        Point3D forward = new Point3D(
+            Math.cos(radianPitch) * Math.sin(radianYaw),
+            Math.sin(radianPitch),
+            Math.cos(radianPitch) * Math.cos(radianYaw)
+        ).normalize();
+
+        Point3D right = worldUp.vectorialProduct(forward).normalize();
+
+        Point3D up = right.vectorialProduct(forward).normalize();
+
+        if ( KeyEvent.VK_D == keyCode) { 
+            this.position = this.position.add(right.scale(50)); 
         }
         if ( KeyEvent.VK_Q == keyCode) {
-            this.setPosX(this.getPosX() - 50);
+            this.position = this.position.add(right.scale(-50));        
         }
         if ( KeyEvent.VK_Z == keyCode) {
-            this.setPosZ(this.getPosZ() - 50);
+            this.position = this.position.add(forward.scale(-50));        
         }
         if ( KeyEvent.VK_S == keyCode) {
-            this.setPosZ(this.getPosZ() + 50);
+            this.position = this.position.add(forward.scale(50));        
         }
         if ( KeyEvent.VK_SPACE == keyCode) {
-            this.setPosY(this.getPosY() + 50);
+            this.position = this.position.add(up.scale(-50));  
         }
         if ( KeyEvent.VK_T == keyCode) {
-            this.setPosY(this.getPosY() - 50);
+            this.position = this.position.add(up.scale(50));         
         }
-        if ( KeyEvent.VK_RIGHT == keyCode) {
-            this.setYaw(this.getYaw() - 1);
-        }
-        if ( KeyEvent.VK_LEFT == keyCode) {
-            this.setYaw(this.getYaw() + 1); 
-        }
-        if ( KeyEvent.VK_UP == keyCode) {
-            this.setPitch(this.getPitch() - 1);
-        }
-        if ( KeyEvent.VK_DOWN == keyCode) {
-            this.setPitch(this.getPitch() + 1);
-        }
-
-        // System.out.println("Position:");
-        // System.out.println("Pos X:" + this.getPosX());
-        // System.out.println("Pos Y:" + this.getPosY());
-        // System.out.println("Pos Z:" + this.getPosZ());
-
-        // System.out.println("Yaw:" + this.getYaw());
-        // System.out.println("Pitch:" + this.getPitch());
     }
 
     @Override
     public void keyReleased(KeyEvent e){ 
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        double newMouseX = e.getX();
+        double newMouseY = e.getY();
+        if (newMouseY > this.mouseY) {
+            this.setPitch(this.getPitch() + 1);
+        }
+        if (newMouseY < this.mouseY) {
+            this.setPitch(this.getPitch() - 1);
+        }
+        if (newMouseX < this.mouseX) {
+            this.setYaw(this.getYaw() + 1);
+        }
+        if (newMouseX > this.mouseX) {
+            this.setYaw(this.getYaw() - 1);
+        }
+        this.mouseX = newMouseX;
+        this.mouseY = newMouseY;
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        
     }
     
 }
