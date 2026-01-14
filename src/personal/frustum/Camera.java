@@ -5,13 +5,17 @@ import java.awt.event.KeyListener;
 
 public class Camera implements KeyListener {
 
-    private Integer posX;
-    private Integer posY;
-    private Integer posZ;
-    private Integer yaw;
-    private Integer pitch;
 
-    public Camera(Integer posX, Integer posY, Integer posZ, Integer yaw, Integer pitch) {
+    private Point3D position;
+    private Matrix stateMatrix;
+    private double  posX;
+    private double posY;
+    private double posZ;
+    private double yaw;
+    private double pitch;
+
+    public Camera(double posX, double posY, double posZ, double yaw, double pitch) {
+        this.position = new Point3D(posX, posY, posZ);
         this.posX = posX;
         this.posY = posY;
         this.posZ = posZ;
@@ -19,54 +23,62 @@ public class Camera implements KeyListener {
         this.pitch = pitch;
     }
 
-    public void setPosX(Integer newPosX) {
+    public void setPosX(double newPosX) {
         this.posX = newPosX;
     }
 
-    public void setPosY(Integer newPosY) {
+    public void setPosY(double newPosY) {
         this.posY = newPosY;
     }
 
-    public void setPosZ(Integer newPosZ) {
+    public void setPosZ(double newPosZ) {
         this.posZ = newPosZ;
     }
 
-    public void setYaw(Integer newYaw) {
+    public void setYaw(double newYaw) {
         this.yaw = newYaw;
     }
 
-    public void setPitch(Integer newPitch) {
+    public void setPitch(double newPitch) {
         this.pitch = newPitch;
     }
 
-    public Integer getPosX() {
+    public double getPosX() {
         return this.posX;
     }
 
-    public Integer getPosY() {
+    public double getPosY() {
         return this.posY;
     }
 
-    public Integer getPosZ() {
+    public double getPosZ() {
         return this.posZ;
     }
 
-    public Integer getYaw() {
+    public double getYaw() {
         return this.yaw;
     }
 
-    public Integer getPitch() {
+    public double getPitch() {
         return this.pitch;
     }
 
     private Matrix createViewMatrix() {
 
-        Matrix rotation = Matrix.rotationX(Math.toRadians(yaw))
-                                .multiply(Matrix.rotationY(Math.toRadians(pitch)));
+        // Matrix rotation = Matrix.rotationX(Math.toRadians(pitch))
+        //                         .multiply(Matrix.rotationY(Math.toRadians(yaw)));
 
-        Matrix translation = Matrix.translation(-posX, -posY, -posZ);
+        // Matrix translation = Matrix.translation(-posX, -posY, -posZ);
 
-        return translation.multiply(rotation);
+        // return rotation.multiply(translation);
+        Point3D eye = new Point3D(posX, posY, posZ);
+        Point3D target = new Point3D(
+            posX + Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)),
+            posY + Math.sin(Math.toRadians(pitch)),
+            posZ + Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch))
+        );
+        Point3D up = new Point3D(0, 1, 0);
+        return Matrix.lookAt(eye, target, up);
     }
     
     public Matrix createProjectionMatrix() {
@@ -113,22 +125,24 @@ public class Camera implements KeyListener {
             this.setPosY(this.getPosY() - 50);
         }
         if ( KeyEvent.VK_RIGHT == keyCode) {
-            this.setYaw(this.getYaw() + 5);
+            this.setYaw(this.getYaw() - 1);
         }
         if ( KeyEvent.VK_LEFT == keyCode) {
-            this.setYaw(this.getYaw() - 5);
+            this.setYaw(this.getYaw() + 1); 
         }
         if ( KeyEvent.VK_UP == keyCode) {
-            this.setPitch(this.getPitch() + 5);
+            this.setPitch(this.getPitch() - 1);
         }
         if ( KeyEvent.VK_DOWN == keyCode) {
-            this.setPitch(this.getPitch() - 5);
+            this.setPitch(this.getPitch() + 1);
         }
 
         System.out.println("Position:");
         System.out.println("Pos X:" + this.getPosX());
         System.out.println("Pos Y:" + this.getPosY());
         System.out.println("Pos Z:" + this.getPosZ());
+        System.out.println("Yaw:" + this.getYaw());
+        System.out.println("Pitch:" + this.getPitch());
     }
 
     @Override

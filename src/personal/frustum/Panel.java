@@ -43,6 +43,7 @@ public class Panel extends JPanel {
 
         for (Point3D point : form.getPoints()) {
             Point3D transformed = mvpMatrix.multiply(point);
+            System.out.println("Transformed: " + transformed.x() + ", " + transformed.y() + ", " + transformed.z());
             projection.add(transformed);
         }
 
@@ -52,12 +53,18 @@ public class Panel extends JPanel {
         for (int i = 0; i < form.getNumberOfPoints(); i++) {
             for (int j = i+1; j< form.getNumberOfPoints(); j++ ) {
                 if (visibilityGraph[i][j] == 1) {
-                    g.drawLine(
-                        ref.x() - projection.get(i).x(),
-                        ref.y() + projection.get(i).y(),
-                        ref.x() - projection.get(j).x(),
-                        ref.y() + projection.get(j).y()
-                        );
+                    int width = getWidth();
+                    int height = getHeight();
+                    
+                    // Apply viewport transformation with scaling factor
+                    double scale = Math.min(width, height) / 4.0;
+                    
+                    int screenX1 = (int) ref.x() + (int)(projection.get(i).x() * scale);
+                    int screenY1 = (int) ref.y() + (int)(projection.get(i).y() * scale);
+                    int screenX2 = (int) ref.x() + (int)(projection.get(j).x() * scale);
+                    int screenY2 = (int) ref.y() + (int)(projection.get(j).y() * scale);
+                    
+                    g.drawLine(screenX1, screenY1, screenX2, screenY2);
                 }
             }
         }

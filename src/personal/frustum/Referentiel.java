@@ -1,3 +1,3 @@
 package personal.frustum;
 
-public record Referentiel(Integer x, Integer y) {}
+public record Referentiel(double x, double y) {}

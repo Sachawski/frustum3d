@@ -21,8 +21,9 @@ public class Matrix {
         return elements[row][col];
     }
 
-    public void set(int row, int col, double value) {
+    public double[][] set(int row, int col, double value) {
         elements[row][col] = value;
+        return elements;
     }
 
     public static Matrix identity() {
@@ -74,7 +75,7 @@ public class Matrix {
             newZ /= newW;
         }
 
-        return new Point3D((int) Math.round(newX), (int) Math.round(newY), (int) Math.round(newZ));
+        return new Point3D(newX, newY, newZ);
     }
 
     public Matrix inverse() {

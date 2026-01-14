@@ -1,8 +1,6 @@
 package personal.frustum;
 
-public record Point3D(Integer x, Integer y, Integer z) {
-
-    private static final int focal = 1;
+public record Point3D(double x, double y, double z) {
 
     public Point3D add(Point3D point) {
         return new Point3D(this.x() + point.x(), this.y() + point.y(), this.z() + point.z());
@@ -21,20 +19,11 @@ public record Point3D(Integer x, Integer y, Integer z) {
     //     return new Point3D(scalarProduct*point.x(), scalarProduct*point.y(), scalarProduct*point.z());
     // }
 
-   public Point3D perspective() {
-        Integer depth = this.z();
-        if (depth != 0) {
-            return new Point3D(this.x()*focal/depth, this.y()*focal/depth,depth);
-        } else {
-            return new Point3D(this.x(), this.y(),depth);
-        }
-    } 
-
     public Point3D vectorialProduct(Point3D point) {
         return new Point3D(
-            this.y()*point.z() + this.z()*point.y(),
-            this.z()*point.x() + this.x()*point.z(),
-            this.x()*point.y() + this.y()*point.x()
+            this.y()*point.z() - this.z()*point.y(),
+            this.z()*point.x() - this.x()*point.z(),
+            this.x()*point.y() - this.y()*point.x()
         );
     }
 }
