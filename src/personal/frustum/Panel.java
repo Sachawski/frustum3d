@@ -43,7 +43,7 @@ public class Panel extends JPanel {
 
         for (Point3D point : form.getPoints()) {
             Point3D transformed = mvpMatrix.multiply(point);
-            System.out.println("Transformed: " + transformed.x() + ", " + transformed.y() + ", " + transformed.z());
+            // System.out.println("Transformed: " + transformed.getPosX() + ", " + transformed.getPosY() + ", " + transformed.getPosZ());
             projection.add(transformed);
         }
 
@@ -59,10 +59,10 @@ public class Panel extends JPanel {
                     // Apply viewport transformation with scaling factor
                     double scale = Math.min(width, height) / 4.0;
                     
-                    int screenX1 = (int) ref.x() + (int)(projection.get(i).x() * scale);
-                    int screenY1 = (int) ref.y() + (int)(projection.get(i).y() * scale);
-                    int screenX2 = (int) ref.x() + (int)(projection.get(j).x() * scale);
-                    int screenY2 = (int) ref.y() + (int)(projection.get(j).y() * scale);
+                    int screenX1 = (int) ref.x() + (int)(projection.get(i).getPosX() * scale);
+                    int screenY1 = (int) ref.y() + (int)(projection.get(i).getPosY() * scale);
+                    int screenX2 = (int) ref.x() + (int)(projection.get(j).getPosX() * scale);
+                    int screenY2 = (int) ref.y() + (int)(projection.get(j).getPosY() * scale);
                     
                     g.drawLine(screenX1, screenY1, screenX2, screenY2);
                 }
@@ -71,15 +71,14 @@ public class Panel extends JPanel {
     }
 
     private boolean isPointVisible(Point3D point) {
-        return (camera.getPosZ() > point.z());
+        return (camera.getPosZ() > point.getPosZ());
     }
 
     private boolean isPointInFrustum(Point3D point) {
     // NDC coordinates should be within [-1, +1] range
-    return point.x() >= -1 && point.x() <= 1 &&
-           point.y() >= -1 && point.y() <= 1 &&
-           point.z() >= 0 && point.z() <= 1;
+    return point.getPosX() >= -1 && point.getPosX() <= 1 &&
+           point.getPosY() >= -1 && point.getPosY() <= 1 &&
+           point.getPosZ() >= 0 && point.getPosZ() <= 1;
     }
     
-
 }

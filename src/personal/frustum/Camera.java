@@ -6,33 +6,26 @@ import java.awt.event.KeyListener;
 public class Camera implements KeyListener {
 
 
-    private Point3D position;
-    private Matrix stateMatrix;
-    private double  posX;
-    private double posY;
-    private double posZ;
+    private final Point3D position;
     private double yaw;
     private double pitch;
 
     public Camera(double posX, double posY, double posZ, double yaw, double pitch) {
         this.position = new Point3D(posX, posY, posZ);
-        this.posX = posX;
-        this.posY = posY;
-        this.posZ = posZ;
         this.yaw = yaw;
         this.pitch = pitch;
     }
 
     public void setPosX(double newPosX) {
-        this.posX = newPosX;
+        this.position.setPosX(newPosX);
     }
 
     public void setPosY(double newPosY) {
-        this.posY = newPosY;
+        this.position.setPosY(newPosY);
     }
 
     public void setPosZ(double newPosZ) {
-        this.posZ = newPosZ;
+        this.position.setPosZ(newPosZ);
     }
 
     public void setYaw(double newYaw) {
@@ -44,15 +37,15 @@ public class Camera implements KeyListener {
     }
 
     public double getPosX() {
-        return this.posX;
+        return this.position.getPosX();
     }
 
     public double getPosY() {
-        return this.posY;
+        return this.position.getPosY();
     }
 
     public double getPosZ() {
-        return this.posZ;
+        return this.position.getPosZ();
     }
 
     public double getYaw() {
@@ -63,14 +56,7 @@ public class Camera implements KeyListener {
         return this.pitch;
     }
 
-    private Matrix createViewMatrix() {
-
-        // Matrix rotation = Matrix.rotationX(Math.toRadians(pitch))
-        //                         .multiply(Matrix.rotationY(Math.toRadians(yaw)));
-
-        // Matrix translation = Matrix.translation(-posX, -posY, -posZ);
-
-        // return rotation.multiply(translation);
+    private Matrix createViewMatrix(double posX, double  posY, double  posZ, double yaw, double pitch) {
         Point3D eye = new Point3D(posX, posY, posZ);
         Point3D target = new Point3D(
             posX + Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)),
@@ -92,7 +78,14 @@ public class Camera implements KeyListener {
 
     public Matrix createMVPMatrix() {
         Matrix projection = createProjectionMatrix();
-        Matrix view = createViewMatrix();
+        // Matrix view = createViewMatrix();
+        Matrix view = createViewMatrix(
+            position.getPosX(),
+            position.getPosY(),
+            position.getPosZ(),
+            yaw,
+            pitch
+        );
         Matrix model = Matrix.identity(); // objects don't move
         
         // MVP = Projection * View * Model
@@ -137,12 +130,13 @@ public class Camera implements KeyListener {
             this.setPitch(this.getPitch() + 1);
         }
 
-        System.out.println("Position:");
-        System.out.println("Pos X:" + this.getPosX());
-        System.out.println("Pos Y:" + this.getPosY());
-        System.out.println("Pos Z:" + this.getPosZ());
-        System.out.println("Yaw:" + this.getYaw());
-        System.out.println("Pitch:" + this.getPitch());
+        // System.out.println("Position:");
+        // System.out.println("Pos X:" + this.getPosX());
+        // System.out.println("Pos Y:" + this.getPosY());
+        // System.out.println("Pos Z:" + this.getPosZ());
+
+        // System.out.println("Yaw:" + this.getYaw());
+        // System.out.println("Pitch:" + this.getPitch());
     }
 
     @Override

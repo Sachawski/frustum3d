@@ -21,9 +21,31 @@ public class Matrix {
         return elements[row][col];
     }
 
-    public double[][] set(int row, int col, double value) {
+    public void set(int row, int col, double value) {
         elements[row][col] = value;
-        return elements;
+    }   
+     
+    public Matrix copyAndset(int row, int col, double value) {
+        double[][] newElements = deepCopy(elements);
+        newElements[row][col] = value;
+        return new Matrix(newElements);
+    }
+
+    public Matrix extract(int raw, int col, int height, int width) {
+        Matrix result = new Matrix();
+        if (raw+height > SIZE || col+width > SIZE) {
+            return Matrix.identity();
+        }
+        for (int i = raw; i < height; i++) {
+            for (int j = col ; j < width; j++) {
+                result.set(i-raw, j-col, this.get(i, j));
+            }
+        }
+        return result;
+    }
+
+    private double[][] deepCopy(double[][] matrix) {
+        return java.util.Arrays.stream(matrix).map(el -> el.clone()).toArray($ -> matrix.clone());
     }
 
     public static Matrix identity() {
@@ -59,9 +81,9 @@ public class Matrix {
     }
 
     public Point3D multiply(Point3D point) {
-        double x = point.x();
-        double y = point.y();
-        double z = point.z();
+        double x = point.getPosX();
+        double y = point.getPosY();
+        double z = point.getPosZ();
         double w = 1.0;
 
         double newX = this.get(0, 0) * x + this.get(0, 1) * y + this.get(0, 2) * z + this.get(0, 3) * w;
@@ -76,65 +98,6 @@ public class Matrix {
         }
 
         return new Point3D(newX, newY, newZ);
-    }
-
-    public Matrix inverse() {
-        Matrix result = new Matrix();
-        
-        double[][] augmented = new double[SIZE][SIZE * 2];
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                augmented[i][j] = this.get(i, j);
-                augmented[i][j + SIZE] = (i == j) ? 1.0 : 0.0;
-            }
-        }
-
-        for (int col = 0; col < SIZE; col++) {
-            int maxRow = col;
-            for (int row = col + 1; row < SIZE; row++) {
-                if (Math.abs(augmented[row][col]) > Math.abs(augmented[maxRow][col])) {
-                    maxRow = row;
-                }
-            }
-
-            double[] temp = augmented[col];
-            augmented[col] = augmented[maxRow];
-            augmented[maxRow] = temp;
-
-            double pivot = augmented[col][col];
-            if (Math.abs(pivot) < 1e-10) {
-                return null;
-            }
-
-            for (int j = 0; j < SIZE * 2; j++) {
-                augmented[col][j] /= pivot;
-            }
-
-            for (int row = 0; row < SIZE; row++) {
-                if (row != col) {
-                    double factor = augmented[row][col];
-                    for (int j = 0; j < SIZE * 2; j++) {
-                        augmented[row][j] -= factor * augmented[col][j];
-                    }
-                }
-            }
-        }
-
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                result.set(i, j, augmented[i][j + SIZE]);
-            }
-        }
-
-        return result;
-    }
-
-    public static Matrix translation(double x, double y, double z) {
-        Matrix matrix = Matrix.identity();
-        matrix.set(0, 3, x);
-        matrix.set(1, 3, y);
-        matrix.set(2, 3, z);
-        return matrix;
     }
 
     public static Matrix rotationX(double angleRadians) {
@@ -193,17 +156,17 @@ public class Matrix {
     }
 
     public static Matrix lookAt(Point3D eye, Point3D target, Point3D up) {
-        double eyeX = eye.x();
-        double eyeY = eye.y();
-        double eyeZ = eye.z();
+        double eyeX = eye.getPosX();
+        double eyeY = eye.getPosY();
+        double eyeZ = eye.getPosZ();
         
-        double targetX = target.x();
-        double targetY = target.y();
-        double targetZ = target.z();
+        double targetX = target.getPosX();
+        double targetY = target.getPosY();
+        double targetZ = target.getPosZ();
         
-        double upX = up.x();
-        double upY = up.y();
-        double upZ = up.z();
+        double upX = up.getPosX();
+        double upY = up.getPosY();
+        double upZ = up.getPosZ();
 
         double zAxisX = eyeX - targetX;
         double zAxisY = eyeY - targetY;
