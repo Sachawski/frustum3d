@@ -79,6 +79,7 @@ public class Point3D {
         );
     }
 
+    @Override
     public String toString(){
         return "Point3D(" + this.posX + "," + this.posY + "," + this.posZ + ")";
     }

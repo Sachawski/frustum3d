@@ -15,11 +15,14 @@ public class Main extends JFrame{
         int width = rectangle.width;
         int height = rectangle.height;
         Camera camera = new Camera(0, 500, -500, 180, 0, width, height);
+        CameraMovementManager movementListener = new CameraMovementManager(camera);
+        movementListener.driveCamera();
         frame.setSize(width,height);
         frame.setLocation(0,0);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.addKeyListener(camera);
-        frame.addMouseMotionListener(camera);
+        frame.addKeyListener(movementListener);
+        frame.addMouseMotionListener(movementListener);
+        frame.addMouseListener(movementListener);
         
         Referentiel ref = new Referentiel(width/2,height/2);
 
@@ -50,11 +53,8 @@ public class Main extends JFrame{
 
             Panel panel1 = new Panel(ref, forms, camera);
 
-
             frame.setContentPane(panel1);
             frame.setVisible(true);
-            frame.repaint(); 
-        }
+        }   
     }
-
 }

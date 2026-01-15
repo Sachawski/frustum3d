@@ -53,12 +53,12 @@ public class Panel extends JPanel {
                         Point3D p1 = projection.get(i);
                         Point3D p2 = projection.get(j);
                         
-                        if (isPointBehindCamera(p1) && isPointBehindCamera(p2)) {
+                        if (camera.isPointBehindCamera(p1) && camera.isPointBehindCamera(p2)) {
                             linesBehindCamera++;
                             continue;
                         }
                         
-                        Point3D[] clipped = clipLine(p1, p2);
+                        Point3D[] clipped = camera.clipLine(p1, p2);
                         if (clipped != null && clipped.length == 2) {
                             linesClipped++;
                             double width = getWidth();
@@ -80,79 +80,5 @@ public class Panel extends JPanel {
         }
     }
 
-    private boolean isPointBehindCamera(Point3D point) {
-        return Double.isNaN(point.getPosX()) || 
-               Double.isNaN(point.getPosY()) || 
-               Double.isNaN(point.getPosZ());
-    }
-
-    private Point3D[] clipLine(Point3D p1, Point3D p2) {
-        if (isPointBehindCamera(p1) && isPointBehindCamera(p2)) {
-            return null;
-        }
-        
-        double x1 = p1.getPosX(), y1 = p1.getPosY(), z1 = p1.getPosZ();
-        double x2 = p2.getPosX(), y2 = p2.getPosY(), z2 = p2.getPosZ();
-        
-        double dx = x2 - x1;
-        double dy = y2 - y1;
-        double dz = z2 - z1;
-        
-        double tNear = 0.0;
-        double tFar = 1.0;
-        
-        double[] p = {x1, y1, z1};
-        double[] d = {dx, dy, dz};
-        double[] bounds = {-1, -1, -1};
-        double[] bounds2 = {1, 1, 1};
-        
-        for (int i = 0; i < 3; i++) {
-            if (Math.abs(d[i]) < 1e-10) {
-                if (p[i] < bounds[i] || p[i] > bounds2[i]) {
-                    return null;
-                }
-            } else {
-                double t1 = (bounds[i] - p[i]) / d[i];
-                double t2 = (bounds2[i] - p[i]) / d[i];
-                
-                if (t1 > t2) {
-                    double temp = t1;
-                    t1 = t2;
-                    t2 = temp;
-                }
-                
-                tNear = Math.max(tNear, t1);
-                tFar = Math.min(tFar, t2);
-                
-                if (tNear > tFar) {
-                    return null;
-                }
-            }
-        }
-        
-        if (tNear > 1.0 || tFar < 0.0) {
-            return null;
-        }
-        
-        tNear = Math.max(0.0, tNear);
-        tFar = Math.min(1.0, tFar);
-        
-        if (tNear == tFar) {
-            return null;
-        }
-        
-        Point3D clippedP1 = new Point3D(
-            x1 + tNear * dx,
-            y1 + tNear * dy,
-            z1 + tNear * dz
-        );
-        
-        Point3D clippedP2 = new Point3D(
-            x1 + tFar * dx,
-            y1 + tFar * dy,
-            z1 + tFar * dz
-        );
-        
-        return new Point3D[] {clippedP1, clippedP2};
-    }
+    
 }

@@ -1,19 +1,14 @@
 package personal.frustum;
 
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
+public class Camera {
 
-public class Camera implements KeyListener, MouseMotionListener {
-
+    
     private Point3D position;
     private double yaw;
     private double pitch;
-    private double mouseX = 0;
-    private double mouseY = 0;
     private final double width;
     private final double height;
+
 
     private static final Point3D worldUp = new Point3D(0,1,0);
 
@@ -25,72 +20,60 @@ public class Camera implements KeyListener, MouseMotionListener {
         this.height = heigth;
     }
 
-    public void setPosX(double newPosX) {
-        this.position.setPosX(newPosX);
+    public void moveUp() {
+        Point3D forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
+        Point3D rightVector = rightVector(forwardVector);
+        this.position = this.position.add(upVector(rightVector, forwardVector).scale(50));
     }
 
-    public void setPosY(double newPosY) {
-        this.position.setPosY(newPosY);
+    public void moveDown() {
+        Point3D forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
+        Point3D rightVector = rightVector(forwardVector);
+        this.position = this.position.add(upVector(rightVector, forwardVector).scale(-50));
     }
 
-    public void setPosZ(double newPosZ) {
-        this.position.setPosZ(newPosZ);
+    public void moveForward() {        
+        Point3D forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
+        this.position = this.position.add(forwardVector.scale(50));
     }
 
-    public void setYaw(double newYaw) {
-        this.yaw = newYaw;
+    public void moveBackward() {
+        Point3D forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
+        this.position = this.position.add(forwardVector.scale(-50));
     }
 
-    public void setPitch(double newPitch) {
-        this.pitch = newPitch;
+    public void moveRight() {
+        Point3D forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
+        this.position = this.position.add(rightVector(forwardVector).scale(50));
     }
 
-    public void setMouseX(double newMouseX) {
-        this.mouseX = newMouseX;
+    public void moveLeft() {
+        Point3D forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
+        this.position = this.position.add(rightVector(forwardVector).scale(-50));
     }
 
-    public void setMouseY(double newMouseY) {
-        this.mouseY = newMouseY;
+    public void rotateUp() {
+        if (pitch < 89) {
+            pitch = pitch + 1;
+        }
     }
 
-    public double getPosX() {
-        return this.position.getPosX();
+    public void rotateDown(){
+        if (pitch > -89) {
+            pitch = pitch - 1;
+        }
     }
 
-    public double getPosY() {
-        return this.position.getPosY();
+    public void rotateRight(){
+        if (pitch < 89) {
+            yaw = yaw - 1;
+        }
     }
 
-    public double getPosZ() {
-        return this.position.getPosZ();
-    }
-
-    public double getYaw() {
-        return this.yaw;
-    }
-
-    public double getPitch() {
-        return this.pitch;
-    }
-
-    private Matrix createViewMatrix(double posX, double  posY, double  posZ, double yaw, double pitch) {
-        Point3D eye = new Point3D(posX, posY, posZ);
-        Point3D target = new Point3D(
-            posX + Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)),
-            posY + Math.sin(Math.toRadians(pitch)),
-            posZ + Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch))
-        );
-        Point3D up = new Point3D(0, 1, 0);
-        return Matrix.lookAt(eye, target, up);
-    }
-    
-    public Matrix createProjectionMatrix() {
-        double aspectRatio = this.width/this.height; // square window
-        double fovDegrees = 60.0;
-        double nearPlane = 1;  // prevent division by zero
-        double farPlane = 10000.0; // cull distant objects
-        
-        return Matrix.perspective(fovDegrees, aspectRatio, nearPlane, farPlane);
+    public void rotateLeft(){
+        if (pitch > -89) {
+            yaw = yaw + 1;
+        }
     }
 
     public Matrix createMVPMatrix() {
@@ -108,78 +91,116 @@ public class Camera implements KeyListener, MouseMotionListener {
         return projection.multiply(view).multiply(model);
     }
 
-    @Override
-    public void keyTyped(KeyEvent e) {
+    public boolean isPointBehindCamera(Point3D point) {
+        return Double.isNaN(point.getPosX()) || 
+               Double.isNaN(point.getPosY()) || 
+               Double.isNaN(point.getPosZ());
     }
 
-    @Override
-    public void keyPressed(KeyEvent e) {
-        int keyCode = e.getKeyCode();
-        double radianYaw = Math.toRadians(yaw);
-        double radianPitch = Math.toRadians(pitch);
+    public Point3D[] clipLine(Point3D p1, Point3D p2) {
+        if (isPointBehindCamera(p1) && isPointBehindCamera(p2)) {
+            return null;
+        }
         
-        Point3D forward = new Point3D(
+        double x1 = p1.getPosX(), y1 = p1.getPosY(), z1 = p1.getPosZ();
+        double x2 = p2.getPosX(), y2 = p2.getPosY(), z2 = p2.getPosZ();
+        
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+        double dz = z2 - z1;
+        
+        double tNear = 0.0;
+        double tFar = 1.0;
+        
+        double[] p = {x1, y1, z1};
+        double[] d = {dx, dy, dz};
+        double[] bounds = {-1, -1, -1};
+        double[] bounds2 = {1, 1, 1};
+        
+        for (int i = 0; i < 3; i++) {
+            if (Math.abs(d[i]) < 1e-10) {
+                if (p[i] < bounds[i] || p[i] > bounds2[i]) {
+                    return null;
+                }
+            } else {
+                double t1 = (bounds[i] - p[i]) / d[i];
+                double t2 = (bounds2[i] - p[i]) / d[i];
+                
+                if (t1 > t2) {
+                    double temp = t1;
+                    t1 = t2;
+                    t2 = temp;
+                }
+                
+                tNear = Math.max(tNear, t1);
+                tFar = Math.min(tFar, t2);
+                
+                if (tNear > tFar) {
+                    return null;
+                }
+            }
+        }
+        
+        if (tNear > 1.0 || tFar < 0.0) {
+            return null;
+        }
+        
+        tNear = Math.max(0.0, tNear);
+        tFar = Math.min(1.0, tFar);
+        
+        if (tNear == tFar) {
+            return null;
+        }
+        
+        Point3D clippedP1 = new Point3D(
+            x1 + tNear * dx,
+            y1 + tNear * dy,
+            z1 + tNear * dz
+        );
+        
+        Point3D clippedP2 = new Point3D(
+            x1 + tFar * dx,
+            y1 + tFar * dy,
+            z1 + tFar * dz
+        );
+        
+        return new Point3D[] {clippedP1, clippedP2};
+    }
+    
+    private Point3D forwardVector(double radianYaw, double radianPitch) {
+        return new Point3D(
             Math.cos(radianPitch) * Math.sin(radianYaw),
             Math.sin(radianPitch),
             Math.cos(radianPitch) * Math.cos(radianYaw)
         ).normalize();
-
-        Point3D right = forward.vectorialProduct(worldUp).normalize();
-
-        Point3D up = right.vectorialProduct(forward).normalize();
-
-        if ( KeyEvent.VK_D == keyCode) { 
-            this.position = this.position.add(right.scale(50)); 
-        }
-        if ( KeyEvent.VK_Q == keyCode) {
-            this.position = this.position.add(right.scale(-50));        
-        }
-        if ( KeyEvent.VK_Z == keyCode) {
-            this.position = this.position.add(forward.scale(50));        
-        }
-        if ( KeyEvent.VK_S == keyCode) {
-            this.position = this.position.add(forward.scale(-50));        
-        }
-        if ( KeyEvent.VK_SPACE == keyCode) {
-            this.position = this.position.add(up.scale(50));  
-        }
-        if ( KeyEvent.VK_T == keyCode) {
-            this.position = this.position.add(up.scale(-50));         
-        }
     }
 
-    @Override
-    public void keyReleased(KeyEvent e){ 
+    private Point3D rightVector(Point3D forwardVector) {
+        return forwardVector.vectorialProduct(worldUp).normalize();
     }
 
-    @Override
-    public void mouseDragged(MouseEvent e) {
-        double newMouseX = e.getX();
-        double newMouseY = e.getY();
-        if (pitch < 89) {
-            if (newMouseY > this.mouseY) {
-                this.setPitch(this.getPitch() - 1);
-            }
-        }
-        if (pitch > -89) {
-            if (newMouseY < this.mouseY) {
-                this.setPitch(this.getPitch() + 1);
-            }
-        }
-
-        if (newMouseX < this.mouseX) {
-            this.setYaw(this.getYaw() + 1);
-        }
-        if (newMouseX > this.mouseX) {
-            this.setYaw(this.getYaw() - 1);
-        }
-        this.mouseX = newMouseX;
-        this.mouseY = newMouseY;
+    private Point3D upVector(Point3D rightVector, Point3D forwardVector) {
+        return rightVector.vectorialProduct(forwardVector).normalize();
     }
 
-    @Override
-    public void mouseMoved(MouseEvent e) {
-        
+     private Matrix createViewMatrix(double posX, double  posY, double  posZ, double yaw, double pitch) {
+        Point3D eye = new Point3D(posX, posY, posZ);
+        Point3D target = new Point3D(
+            posX + Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)),
+            posY + Math.sin(Math.toRadians(pitch)),
+            posZ + Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch))
+        );
+        Point3D up = new Point3D(0, 1, 0);
+        return Matrix.lookAt(eye, target, up);
     }
     
+    private Matrix createProjectionMatrix() {
+        double aspectRatio = this.width/this.height; // square window
+        double fovDegrees = 60.0;
+        double nearPlane = 1;  // prevent division by zero
+        double farPlane = 100000.0; // cull distant objects
+        
+        return Matrix.perspective(fovDegrees, aspectRatio, nearPlane, farPlane);
+    }
+
 }
