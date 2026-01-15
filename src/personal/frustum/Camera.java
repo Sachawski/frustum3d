@@ -155,12 +155,12 @@ public class Camera implements KeyListener, MouseMotionListener {
         double newMouseY = e.getY();
         if (pitch < 89) {
             if (newMouseY > this.mouseY) {
-                this.setPitch(this.getPitch() + 1);
+                this.setPitch(this.getPitch() - 1);
             }
         }
         if (pitch > -89) {
             if (newMouseY < this.mouseY) {
-                this.setPitch(this.getPitch() - 1);
+                this.setPitch(this.getPitch() + 1);
             }
         }
 
