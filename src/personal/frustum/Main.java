@@ -2,6 +2,7 @@ package personal.frustum;
 
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JFrame;
 
@@ -25,32 +26,17 @@ public class Main extends JFrame{
         frame.addMouseListener(movementListener);
         
         Referentiel ref = new Referentiel(width/2,height/2);
+        double cubeSize = 1000;
+        CubeFactory cubeFactory = new CubeFactory(cubeSize);
+
+        List<Form> forms = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                forms.add(cubeFactory.buildAt(new Point3D(i*cubeSize,0,j*cubeSize)));
+            }
+        }
 
         while (true) {
-            Cube cube1 = new Cube(
-                new Point3D(500, 1000, -2000),
-                new Point3D(-500, 1000, -2000),
-                new Point3D(-500, 0, -2000),
-                new Point3D(500, 0, -2000),
-                new Point3D(500, 1000, -3000),
-                new Point3D(-500, 1000, -3000),
-                new Point3D(-500, 0, -3000),
-                new Point3D(500, 0, -3000)
-            );
-
-            Cube cube2 = new Cube(
-                new Point3D(500, 1000, -2000),
-                new Point3D(1500, 1000, -2000),
-                new Point3D(1500, 0, -2000),
-                new Point3D(500, 0, -2000),
-                new Point3D(500, 1000, -3000),
-                new Point3D(1500, 1000, -3000),
-                new Point3D(1500, 0, -3000),
-                new Point3D(500, 0, -3000)
-            );
-
-            List<Form> forms = List.of(cube1,cube2);
-
             Panel panel1 = new Panel(ref, forms, camera);
 
             frame.setContentPane(panel1);

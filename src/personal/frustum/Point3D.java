@@ -2,9 +2,9 @@ package personal.frustum;
 
 public class Point3D {
 
-    public double posX;
-    public double posY;
-    public double posZ;
+    private double posX;
+    private double posY;
+    private double posZ;
 
     public Point3D(double posX, double posY, double posZ) {
         this.posX = posX;
