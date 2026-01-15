@@ -1,5 +1,6 @@
 package personal.frustum;
 
+import java.util.List;
 import javax.swing.JFrame;
 
 public class Main extends JFrame{
@@ -18,7 +19,7 @@ public class Main extends JFrame{
         Referentiel ref = new Referentiel(size/2,size/2);
 
         while (true) {
-            Cube cube = new Cube(
+            Cube cube1 = new Cube(
                 new Point3D(500, 1000, -2000),
                 new Point3D(-500, 1000, -2000),
                 new Point3D(-500, 0, -2000),
@@ -29,10 +30,23 @@ public class Main extends JFrame{
                 new Point3D(500, 0, -3000)
             );
 
-            Panel panel = new Panel(ref, cube, camera);
+            Cube cube2 = new Cube(
+                new Point3D(2000, 1000, -2000),
+                new Point3D(1000, 1000, -2000),
+                new Point3D(1000, 0, -2000),
+                new Point3D(2000, 0, -2000),
+                new Point3D(2000, 1000, -3000),
+                new Point3D(1000, 1000, -3000),
+                new Point3D(1000, 0, -3000),
+                new Point3D(2000, 0, -3000)
+            );
 
-            frame.setContentPane(panel);
+            List<Form> forms = List.of(cube1,cube2);
 
+            Panel panel1 = new Panel(ref, forms, camera);
+
+
+            frame.setContentPane(panel1);
             frame.setVisible(true);
             frame.repaint(); 
         }

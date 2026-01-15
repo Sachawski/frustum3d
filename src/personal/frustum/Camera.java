@@ -81,9 +81,9 @@ public class Camera implements KeyListener, MouseMotionListener {
     }
     
     public Matrix createProjectionMatrix() {
-        double aspectRatio = 1000.0 / 1000.0; // square window
+        double aspectRatio = 1; // square window
         double fovDegrees = 60.0;
-        double nearPlane = 1.0;  // prevent division by zero
+        double nearPlane = 1;  // prevent division by zero
         double farPlane = 10000.0; // cull distant objects
         
         return Matrix.perspective(fovDegrees, aspectRatio, nearPlane, farPlane);
