@@ -61,15 +61,16 @@ public class Panel extends JPanel {
                         Point3D[] clipped = clipLine(p1, p2);
                         if (clipped != null && clipped.length == 2) {
                             linesClipped++;
-                            int width = getWidth();
-                            int height = getHeight();
+                            double width = getWidth();
+                            double height = getHeight();
+
+                            double scaleX = width / 2;
+                            double scaleY = height / 2;
                             
-                            double scale = Math.min(width, height) / 4.0;
-                            
-                            int screenX1 = (int) ref.x() + (int)(clipped[0].getPosX() * scale);
-                            int screenY1 = (int) ref.y() - (int)(clipped[0].getPosY() * scale);
-                            int screenX2 = (int) ref.x() + (int)(clipped[1].getPosX() * scale);
-                            int screenY2 = (int) ref.y() - (int)(clipped[1].getPosY() * scale);
+                            int screenX1 = (int) ref.x() + (int)(clipped[0].getPosX() * scaleX);
+                            int screenY1 = (int) ref.y() - (int)(clipped[0].getPosY() * scaleY);
+                            int screenX2 = (int) ref.x() + (int)(clipped[1].getPosX() * scaleX);
+                            int screenY2 = (int) ref.y() - (int)(clipped[1].getPosY() * scaleY);
                             
                             g.drawLine(screenX1, screenY1, screenX2, screenY2);
                         }

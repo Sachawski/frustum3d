@@ -10,11 +10,11 @@ public class Main extends JFrame{
 
     public static void main(String[] args) {
 
-        Camera camera = new Camera(0,500,-500,180,0);
         JFrame frame = new JFrame("Lines");
         Rectangle rectangle = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-        int height = rectangle.height;
         int width = rectangle.width;
+        int height = rectangle.height;
+        Camera camera = new Camera(0, 500, -500, 180, 0, width, height);
         frame.setSize(width,height);
         frame.setLocation(0,0);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

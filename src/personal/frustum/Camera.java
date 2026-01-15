@@ -12,13 +12,17 @@ public class Camera implements KeyListener, MouseMotionListener {
     private double pitch;
     private double mouseX = 0;
     private double mouseY = 0;
+    private final double width;
+    private final double height;
 
     private static final Point3D worldUp = new Point3D(0,1,0);
 
-    public Camera(double posX, double posY, double posZ, double yaw, double pitch) {
+    public Camera(double posX, double posY, double posZ, double yaw, double pitch, double width, double heigth) {
         this.position = new Point3D(posX, posY, posZ);
         this.yaw = yaw;
         this.pitch = pitch;
+        this.width = width;
+        this.height = heigth;
     }
 
     public void setPosX(double newPosX) {
@@ -81,7 +85,7 @@ public class Camera implements KeyListener, MouseMotionListener {
     }
     
     public Matrix createProjectionMatrix() {
-        double aspectRatio = 1; // square window
+        double aspectRatio = this.width/this.height; // square window
         double fovDegrees = 60.0;
         double nearPlane = 1;  // prevent division by zero
         double farPlane = 10000.0; // cull distant objects
@@ -142,7 +146,6 @@ public class Camera implements KeyListener, MouseMotionListener {
         if ( KeyEvent.VK_T == keyCode) {
             this.position = this.position.add(up.scale(-50));         
         }
-        System.out.println(this.position.toString());
     }
 
     @Override
@@ -172,10 +175,6 @@ public class Camera implements KeyListener, MouseMotionListener {
         }
         this.mouseX = newMouseX;
         this.mouseY = newMouseY;
-
-        System.out.println("Yaw :" + yaw);        
-
-
     }
 
     @Override
