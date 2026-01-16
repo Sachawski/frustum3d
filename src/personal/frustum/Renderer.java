@@ -6,19 +6,19 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JPanel;
 
-public class Panel extends JPanel {
+public class Renderer extends JPanel {
 
     Referentiel ref;
     List<Form> forms;
     Camera camera;
 
-    public Panel(Referentiel ref, List<Form> forms, Camera camera) {
+    public Renderer(Referentiel ref, List<Form> forms, Camera camera) {
         this.ref = ref;
         this.forms = forms; 
         this.camera = camera;
     }
 
-    public Panel(List<Form> forms, Camera camera) {
+    public Renderer(List<Form> forms, Camera camera) {
         this.ref = new Referentiel(0, 0);
         this.forms = forms; 
         this.camera = camera;

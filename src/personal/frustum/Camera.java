@@ -213,10 +213,10 @@ public class Camera {
 
      private Matrix createViewMatrix(double posX, double  posY, double  posZ, double yawDeg, double pitchDeg) {
         Point3D eye = new Point3D(posX, posY, posZ);
-        double yaw = Math.toRadians(yawDeg);
-        double pitch = Math.toRadians(pitchDeg);
+        double yawRadian = Math.toRadians(yawDeg);
+        double pitchRadian = Math.toRadians(pitchDeg);
         // 1️⃣ Direction caméra
-        Point3D forward = forwardVector(yaw, pitch);
+        Point3D forward = forwardVector(yawRadian, pitchRadian);
 
         // 2️⃣ Base orthonormée caméra (repère droit)
         Point3D right = worldUp.vectorialProduct(forward).normalize();

@@ -39,9 +39,9 @@ public class Main extends JFrame{
 
         while (true) {
             
-            Panel panel1 = new Panel(ref, forms, camera);
+            Renderer renderer = new Renderer(ref, forms, camera);
 
-            frame.setContentPane(panel1);
+            frame.setContentPane(renderer);
             frame.setVisible(true);
         }   
     }
