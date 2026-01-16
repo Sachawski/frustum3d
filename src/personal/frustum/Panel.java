@@ -44,17 +44,35 @@ public class Panel extends JPanel {
             
             int linesProcessed = 0;
             int linesClipped = 0;
-            int linesBehindCamera = 0;
+            int linesCulled = 0;
 
             for (int i = 0; i < form.getNumberOfPoints(); i++) {
                 for (int j = i+1; j< form.getNumberOfPoints(); j++ ) {
                     if (visibilityGraph[i][j] == 1) {
                         linesProcessed++;
+
+                        // Backface culling check
+                        if (form instanceof Cube cube) {
+                            int[] facesForEdge = cube.getFacesForEdge(i, j);
+                            
+                            boolean edgeVisible = false;
+                            for (int faceIndex : facesForEdge) {
+                                if (camera.isFaceFrontFacing(cube.getFaceVertices(faceIndex), projection.toArray(new Point3D[0]))) {
+                                    edgeVisible = true;
+                                    break; // At least one face is front-facing, render edge
+                                }
+                            }
+                            
+                            if (!edgeVisible) {
+                                linesCulled++;
+                                continue; // Skip rendering back-face-only edges
+                            }
+                        }
+
                         Point3D p1 = projection.get(i);
                         Point3D p2 = projection.get(j);
                         
                         if (camera.isPointBehindCamera(p1) && camera.isPointBehindCamera(p2)) {
-                            linesBehindCamera++;
                             continue;
                         }
                         
@@ -77,8 +95,8 @@ public class Panel extends JPanel {
                     }
                 }
             }
+            
         }
     }
-
     
 }

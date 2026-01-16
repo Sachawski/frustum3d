@@ -44,6 +44,10 @@ public class Point3D {
         return new Point3D(this.getPosX() - point.getPosX(), this.getPosY() - point.getPosY(), this.getPosZ() - point.getPosZ());
     }
 
+    public double dot(Point3D point) {
+        return this.getPosX()*point.getPosX() + this.getPosY()*point.getPosY() + this.getPosZ()*point.getPosZ();
+    }
+
     public Point3D scale(Integer scale) {
         return new Point3D(scale*this.getPosX(), scale*this.getPosY(), scale*this.getPosZ());
     }

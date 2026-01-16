@@ -30,11 +30,12 @@ public class Main extends JFrame{
         CubeFactory cubeFactory = new CubeFactory(cubeSize);
 
         List<Form> forms = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
+        for (int i = -50; i < 50; i++) {
+            for (int j = -50; j < 50; j++) {
                 forms.add(cubeFactory.buildAt(new Point3D(i*cubeSize,0,j*cubeSize)));
             }
         }
+        // forms.add(cubeFactory.buildAt(new Point3D(0,0,0)));
 
         while (true) {
             Panel panel1 = new Panel(ref, forms, camera);

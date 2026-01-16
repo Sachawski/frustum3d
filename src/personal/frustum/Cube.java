@@ -16,6 +16,46 @@ public class Cube implements Form {
                                                        {0, 0, 0, 0, 0, 0, 0, 1},
                                                        {0, 0, 0, 0, 0, 0, 0, 0},};
 
+    private static final int[][] FACES = {
+        {0, 3, 2, 1},  // Back face
+        {4, 5, 6 ,7},  // Front face
+        {0, 4, 7, 3},  // Right face
+        {1, 2, 6, 5},  // Left face
+        {3, 7, 6 ,2},  // Top face
+        {0, 1, 5, 4}   // Bottom face
+    };
+
+     // Check if both endpoints of edge are in the same face
+    public boolean edgeBelongsToFace(int edgeV1, int edgeV2, int faceIndex) {
+        int[] faceVertices = FACES[faceIndex];
+        boolean v1InFace = false;
+        boolean v2InFace = false;
+        
+        for (int v : faceVertices) {
+            if (v == edgeV1) v1InFace = true;
+            if (v == edgeV2) v2InFace = true;
+        }
+        
+        return (v1InFace && v2InFace);
+    }
+    
+    // Get all faces that contain this edge
+    public int[] getFacesForEdge(int edgeV1, int edgeV2) {
+        List<Integer> facesList = new ArrayList<>();
+        
+        for (int faceIndex = 0; faceIndex < FACES.length; faceIndex++) {
+            if (edgeBelongsToFace(edgeV1, edgeV2, faceIndex)) {
+                facesList.add(faceIndex);
+            }
+        }
+        
+        return facesList.stream().mapToInt(i -> i).toArray();
+    }
+
+    public int[] getFaceVertices(int faceIndex) {
+        return FACES[faceIndex];
+    }
+
     @Override
     public Integer[][] getGraph() {
         return graph;
