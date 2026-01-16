@@ -11,11 +11,6 @@ public interface Form {
 
     public Map<Integer, int[]> getEdgesFacesMap();
 
-
-    public Integer[][] getGraph();
-
-    public abstract int getNumberOfPoints();
-
     public abstract List<Point3D> getPoints();
 
 }
