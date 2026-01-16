@@ -4,6 +4,10 @@ import java.util.List;
 
 public interface Form {
 
+    public int[][] getFaces();
+
+    public int[][] getEdges();
+
     public Integer[][] getGraph();
 
     public abstract int getNumberOfPoints();

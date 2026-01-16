@@ -30,8 +30,8 @@ public class Main extends JFrame{
         CubeFactory cubeFactory = new CubeFactory(cubeSize);
 
         List<Form> forms = new ArrayList<>();
-        for (int i = -50; i < 50; i++) {
-            for (int j = -50; j < 50; j++) {
+        for (int i = -20; i < 20; i++) {
+            for (int j = -20; j < 20; j++) {
                 forms.add(cubeFactory.buildAt(new Point3D(i*cubeSize,0,j*cubeSize)));
             }
         }

@@ -40,62 +40,53 @@ public class Panel extends JPanel {
                 projection.add(transformed);
             }
 
-            Integer[][] visibilityGraph = form.getGraph();
-            
-            int linesProcessed = 0;
-            int linesClipped = 0;
-            int linesCulled = 0;
-
-            for (int i = 0; i < form.getNumberOfPoints(); i++) {
-                for (int j = i+1; j< form.getNumberOfPoints(); j++ ) {
-                    if (visibilityGraph[i][j] == 1) {
-                        linesProcessed++;
-
-                        // Backface culling check
-                        if (form instanceof Cube cube) {
-                            int[] facesForEdge = cube.getFacesForEdge(i, j);
-                            
-                            boolean edgeVisible = false;
-                            for (int faceIndex : facesForEdge) {
-                                if (camera.isFaceFrontFacing(cube.getFaceVertices(faceIndex), projection.toArray(new Point3D[0]))) {
-                                    edgeVisible = true;
-                                    break; // At least one face is front-facing, render edge
-                                }
-                            }
-                            
-                            if (!edgeVisible) {
-                                linesCulled++;
-                                continue; // Skip rendering back-face-only edges
-                            }
-                        }
-
-                        Point3D p1 = projection.get(i);
-                        Point3D p2 = projection.get(j);
-                        
-                        if (camera.isPointBehindCamera(p1) && camera.isPointBehindCamera(p2)) {
-                            continue;
+            if (form instanceof Cube cube) {
+                int[][] edges = form.getEdges();
+                for (int edgeIndex = 0; edgeIndex < edges.length; edgeIndex++) {
+                    int edgeFirstPointIndex = edges[edgeIndex][0];
+                    int edgeSecondPointIndex = edges[edgeIndex][1];
+                    int[] facesForEdge = cube.getFacesForEdge(edgeFirstPointIndex, edgeSecondPointIndex);
+                    
+                    boolean edgeVisible = false;
+                    for (int faceIndex : facesForEdge) {
+                        int[] faceVertices = cube.getFaceVertices(faceIndex);
+                        if (camera.isFaceFrontFacing(faceVertices, projection.toArray(new Point3D[0]))) {
+                            edgeVisible = true;
+                            break; // At least one face is front-facing, render edge
                         }
                         
-                        Point3D[] clipped = camera.clipLine(p1, p2);
-                        if (clipped != null && clipped.length == 2) {
-                            linesClipped++;
-                            double width = getWidth();
-                            double height = getHeight();
+                    }  
 
-                            double scaleX = width / 2;
-                            double scaleY = height / 2;
-                            
-                            int screenX1 = (int) ref.x() + (int)(clipped[0].getPosX() * scaleX);
-                            int screenY1 = (int) ref.y() - (int)(clipped[0].getPosY() * scaleY);
-                            int screenX2 = (int) ref.x() + (int)(clipped[1].getPosX() * scaleX);
-                            int screenY2 = (int) ref.y() - (int)(clipped[1].getPosY() * scaleY);
-                            
-                            g.drawLine(screenX1, screenY1, screenX2, screenY2);
-                        }
+                    if (!edgeVisible) {
+                        continue; // Skip rendering back-face-only edges
+                    } 
+
+                    Point3D p1 = projection.get(edgeFirstPointIndex);
+                    Point3D p2 = projection.get(edgeSecondPointIndex);
+                    
+                    if (camera.isPointBehindCamera(p1) && camera.isPointBehindCamera(p2)) {
+                        continue;
                     }
+                    
+                    Point3D[] clipped = camera.clipLine(p1, p2);
+                    if (clipped != null && clipped.length == 2) {
+                        double width = getWidth();
+                        double height = getHeight();
+
+                        double scaleX = width / 2;
+                        double scaleY = height / 2;
+                        
+                        int screenX1 = (int) ref.x() + (int)(clipped[0].getPosX() * scaleX);
+                        int screenY1 = (int) ref.y() - (int)(clipped[0].getPosY() * scaleY);
+                        int screenX2 = (int) ref.x() + (int)(clipped[1].getPosX() * scaleX);
+                        int screenY2 = (int) ref.y() - (int)(clipped[1].getPosY() * scaleY);
+                        
+                        g.drawLine(screenX1, screenY1, screenX2, screenY2);
+                    }             
                 }
+
             }
-            
+
         }
     }
     

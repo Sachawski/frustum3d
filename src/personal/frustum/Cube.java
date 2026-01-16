@@ -7,14 +7,6 @@ public class Cube implements Form {
 
     public static final int POINT_NUMBER = 8;
     public List<Point3D> points;
-    private static Integer[][] graph = new Integer[][] {{0, 1, 0, 1, 1, 0, 0, 0},
-                                                       {0, 0, 1, 0, 0, 1, 0, 0},
-                                                       {0, 0, 0, 1, 0, 0, 1, 0},
-                                                       {0, 0, 0, 0, 0, 0, 0, 1},
-                                                       {0, 0, 0, 0, 0, 1, 0, 1},
-                                                       {0, 0, 0, 0, 0, 0, 1, 0},
-                                                       {0, 0, 0, 0, 0, 0, 0, 1},
-                                                       {0, 0, 0, 0, 0, 0, 0, 0},};
 
     private static final int[][] FACES = {
         {0, 3, 2, 1},  // Back face
@@ -24,6 +16,31 @@ public class Cube implements Form {
         {3, 7, 6 ,2},  // Top face
         {0, 1, 5, 4}   // Bottom face
     };
+
+    private static final int[][] EDGES = {
+        {0, 3},
+        {3, 2},
+        {2, 1},
+        {1, 0},
+        {4, 5},
+        {5, 6},
+        {6, 7},
+        {7, 4},
+        {4, 0},
+        {3, 7},
+        {1, 5},
+        {6, 2}
+    };
+
+    @Override
+    public int[][] getFaces() {
+        return FACES;
+    }
+
+    @Override
+    public int[][] getEdges() {
+        return EDGES;
+    }
 
      // Check if both endpoints of edge are in the same face
     public boolean edgeBelongsToFace(int edgeV1, int edgeV2, int faceIndex) {
@@ -58,7 +75,7 @@ public class Cube implements Form {
 
     @Override
     public Integer[][] getGraph() {
-        return graph;
+        return new Integer[][] {{}};
     }
 
     @Override 
