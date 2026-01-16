@@ -1,7 +1,9 @@
 package personal.frustum;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Cube implements Form {
 
@@ -32,6 +34,21 @@ public class Cube implements Form {
         {6, 2}
     };
 
+    private static final Map<Integer, int[]> EDGES_FACES_MAP = new HashMap<>() {{
+        put(0,new int[] {0,2});
+        put(1,new int[] {0,4});
+        put(2,new int[] {0,3});
+        put(3,new int[] {0,5});
+        put(4,new int[] {1,5});
+        put(5,new int[] {1,3});
+        put(6,new int[] {1,4});
+        put(7,new int[] {1,2});
+        put(8,new int[] {2,5});
+        put(9,new int[] {2,4});
+        put(10,new int[] {3,5});
+        put(11,new int[] {3,4});
+    }};
+
     @Override
     public int[][] getFaces() {
         return FACES;
@@ -40,6 +57,11 @@ public class Cube implements Form {
     @Override
     public int[][] getEdges() {
         return EDGES;
+    }
+
+    @Override
+    public Map<Integer, int[]> getEdgesFacesMap() {
+        return EDGES_FACES_MAP;
     }
 
      // Check if both endpoints of edge are in the same face

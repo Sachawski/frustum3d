@@ -45,7 +45,7 @@ public class Panel extends JPanel {
                 for (int edgeIndex = 0; edgeIndex < edges.length; edgeIndex++) {
                     int edgeFirstPointIndex = edges[edgeIndex][0];
                     int edgeSecondPointIndex = edges[edgeIndex][1];
-                    int[] facesForEdge = cube.getFacesForEdge(edgeFirstPointIndex, edgeSecondPointIndex);
+                    int[] facesForEdge = cube.getEdgesFacesMap().get(edgeIndex);
                     
                     boolean edgeVisible = false;
                     for (int faceIndex : facesForEdge) {
