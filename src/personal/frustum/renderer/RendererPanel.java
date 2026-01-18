@@ -19,12 +19,14 @@ public class RendererPanel extends JPanel {
     Camera camera;
 
     public RendererPanel(Referentiel ref, List<Mesh> forms, Camera camera) {
+        setFocusable(true);
         this.ref = ref;
         this.forms = forms; 
         this.camera = camera;
     }
 
     public RendererPanel(List<Mesh> forms, Camera camera) {
+        setFocusable(true);
         this.ref = new Referentiel(0, 0);
         this.forms = forms; 
         this.camera = camera;

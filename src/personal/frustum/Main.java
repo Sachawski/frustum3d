@@ -61,7 +61,12 @@ public class Main extends JFrame{
         renderer.addKeyListener(movementListener);
         renderer.addMouseMotionListener(movementListener);
         renderer.addMouseListener(movementListener);
-
+        renderer.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                renderer.requestFocusInWindow();
+            }
+        });
 
         // Use JSplitPane for resizable panels side by side
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, configPanel, renderer);

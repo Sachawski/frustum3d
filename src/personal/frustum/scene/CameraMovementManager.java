@@ -13,6 +13,7 @@ public class CameraMovementManager implements KeyListener, MouseListener, MouseM
     private final Camera camera;
     private double mouseX = 0;
     private double mouseY = 0;
+
     public Map<String,Boolean> movementMap = new HashMap<>() {{
         put("forward",false);
         put("backward",false);
