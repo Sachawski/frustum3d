@@ -9,16 +9,16 @@ import javax.swing.JPanel;
 public class Renderer extends JPanel {
 
     Referentiel ref;
-    List<Form> forms;
+    List<Mesh> forms;
     Camera camera;
 
-    public Renderer(Referentiel ref, List<Form> forms, Camera camera) {
+    public Renderer(Referentiel ref, List<Mesh> forms, Camera camera) {
         this.ref = ref;
         this.forms = forms; 
         this.camera = camera;
     }
 
-    public Renderer(List<Form> forms, Camera camera) {
+    public Renderer(List<Mesh> forms, Camera camera) {
         this.ref = new Referentiel(0, 0);
         this.forms = forms; 
         this.camera = camera;
@@ -30,17 +30,18 @@ public class Renderer extends JPanel {
 
         Matrix mvpMatrix = camera.createMVPMatrix();
 
-        for (Form form : forms) {
+        for (Mesh form : forms) {
             List<Point3D> projection = new ArrayList<>();
 
-
-            for (int i = 0; i < form.getPoints().size(); i++) {
-                Point3D point = form.getPoints().get(i);
+            for (int i = 0; i < form.getVertices().size(); i++) {
+                Point3D point = form.getVertices().get(i);
                 Point3D transformed = mvpMatrix.multiply(point);
                 projection.add(transformed);
             }
 
-            if (form instanceof Cube cube) {
+            if (form instanceof CubeMesh cube) {
+
+
                 int[][] edges = form.getEdges();
                 for (int edgeIndex = 0; edgeIndex < edges.length; edgeIndex++) {
                     int edgeFirstPointIndex = edges[edgeIndex][0];
@@ -80,7 +81,7 @@ public class Renderer extends JPanel {
                         int screenY1 = (int) ref.y() - (int)(clipped[0].getPosY() * scaleY);
                         int screenX2 = (int) ref.x() + (int)(clipped[1].getPosX() * scaleX);
                         int screenY2 = (int) ref.y() - (int)(clipped[1].getPosY() * scaleY);
-                        
+
                         g.drawLine(screenX1, screenY1, screenX2, screenY2);
                     }             
                 }

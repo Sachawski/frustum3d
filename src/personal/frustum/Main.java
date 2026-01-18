@@ -29,10 +29,10 @@ public class Main extends JFrame{
         double cubeSize = 1000;
         CubeFactory cubeFactory = new CubeFactory(cubeSize);
 
-        List<Form> forms = new ArrayList<>();
+        List<Mesh> forms = new ArrayList<>();
         for (int i = -50; i < 50; i++) {
             for (int j = -50; j < 50; j++) {
-                forms.add(cubeFactory.buildAt(new Point3D(i*cubeSize,0,j*cubeSize)));
+                forms.add(cubeFactory.buildAt(new Point3D(2*i*cubeSize,0,2*j*cubeSize)));
             }
         }
         // forms.add(cubeFactory.buildAt(new Point3D(0,0,0)));

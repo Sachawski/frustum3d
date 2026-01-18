@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Cube implements Form {
+public class CubeMesh implements Mesh {
 
     public static final int POINT_NUMBER = 8;
-    public List<Point3D> points;
+    public List<Point3D> vertices;
     private static final int[][] FACES = {
         {0, 3, 2, 1},  // Back face
         {4, 5, 6 ,7},  // Front face
@@ -46,16 +46,16 @@ public class Cube implements Form {
         put(11,new int[] {3,4});
     }};
 
-    public Cube(List<Point3D> points) throws Exception {
+    public CubeMesh(List<Point3D> points) throws Exception {
         if (points.size() > POINT_NUMBER) {
-            this.points = points;
+            this.vertices = points;
         }
         else {
             throw new Exception("Wrong polygon");
         }
     }
 
-    public Cube(Point3D firstPoint,
+    public CubeMesh(Point3D firstPoint,
                 Point3D secondPoint,
                 Point3D thirdPoint,
                 Point3D fourthPoint,
@@ -72,7 +72,7 @@ public class Cube implements Form {
         newPoints.add(sixthPoint);
         newPoints.add(seventhPoint);
         newPoints.add(eigthPoint);
-        this.points = newPoints;
+        this.vertices = newPoints;
     }
 
     @Override
@@ -86,13 +86,13 @@ public class Cube implements Form {
     }
 
     @Override
-    public Map<Integer, int[]> getEdgesFacesMap() {
-        return EDGES_FACES_MAP;
+    public List<Point3D> getVertices() {
+        return vertices;
     }
 
     @Override
-    public List<Point3D> getPoints() {
-        return points;
+    public Map<Integer, int[]> getEdgesFacesMap() {
+        return EDGES_FACES_MAP;
     }
 
     public int[] getFaceVertices(int faceIndex) {

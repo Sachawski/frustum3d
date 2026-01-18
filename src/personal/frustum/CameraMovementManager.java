@@ -49,10 +49,10 @@ public class CameraMovementManager implements KeyListener, MouseListener, MouseM
                         camera.moveBackward();
                     }
                     if (this.movementMap.get("up")) {
-                        camera.moveUp();
+                        camera.moveWorldUp();
                     }
                     if (this.movementMap.get("down")) {
-                        camera.moveDown();
+                        camera.moveWorldDown();
                     }
                     if (this.rotationMap.get("right")) {
                         camera.rotateRight();

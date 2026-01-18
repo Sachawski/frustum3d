@@ -32,6 +32,14 @@ public class Camera {
         this.position = this.position.add(upVector(rightVector, forwardVector).scale(-50));
     }
 
+    public void moveWorldUp() {
+        this.position = this.position.add(worldUp.scale(50));
+    }
+
+    public void moveWorldDown() {
+        this.position = this.position.add(worldUp.scale(-50));
+    }
+
     public void moveForward() {        
         Point3D forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
         this.position = this.position.add(forwardVector.scale(50));
