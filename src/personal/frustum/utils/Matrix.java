@@ -1,4 +1,6 @@
-package personal.frustum;
+package personal.frustum.utils;
+
+import personal.frustum.core.Point3D;
 
 // MADE WITH AI FOR SIMPLICITY
 

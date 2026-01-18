@@ -1,8 +1,10 @@
-package personal.frustum;
+package personal.frustum.scene;
+
+import personal.frustum.core.Point3D;
+import personal.frustum.utils.Matrix;
 
 public class Camera {
 
-    
     public Point3D position;
     private double yaw;
     private double pitch;

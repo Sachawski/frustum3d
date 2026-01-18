@@ -1,4 +1,4 @@
-package personal.frustum;
+package personal.frustum.core;
 
 public class Point3D {
 

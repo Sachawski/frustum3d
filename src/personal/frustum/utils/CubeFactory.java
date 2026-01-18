@@ -1,4 +1,7 @@
-package personal.frustum;
+package personal.frustum.utils;
+
+import personal.frustum.core.CubeMesh;
+import personal.frustum.core.Point3D;
 
 public class CubeFactory {
 

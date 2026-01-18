@@ -1,4 +1,4 @@
-package personal.frustum;
+package personal.frustum.core;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,7 +8,7 @@ import java.util.Map;
 public class CubeMesh implements Mesh {
 
     public static final int POINT_NUMBER = 8;
-    public List<Point3D> vertices;
+    private List<Point3D> vertices;
     private static final int[][] FACES = {
         {0, 3, 2, 1},  // Back face
         {4, 5, 6 ,7},  // Front face

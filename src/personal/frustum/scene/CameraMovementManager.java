@@ -1,4 +1,4 @@
-package personal.frustum;
+package personal.frustum.scene;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
