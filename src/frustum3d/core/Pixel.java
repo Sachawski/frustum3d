@@ -1,4 +1,4 @@
-package personal.frustum.core;
+package frustum3d.core;
 
 public record Pixel(int x, int y) {
 

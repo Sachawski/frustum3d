@@ -1,4 +1,4 @@
-package personal.frustum;
+package frustum3d;
 
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
@@ -10,14 +10,15 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.Timer;
-import personal.frustum.core.Mesh;
-import personal.frustum.core.Vertex;
-import personal.frustum.renderer.RendererPanel;
-import personal.frustum.renderer.RenderingType;
-import personal.frustum.scene.Camera;
-import personal.frustum.scene.CameraMovementManager;
-import personal.frustum.utils.CubeFactory;
-import personal.frustum.utils.Referentiel;
+
+import frustum3d.core.Mesh;
+import frustum3d.core.Vertex;
+import frustum3d.renderer.RendererPanel;
+import frustum3d.renderer.RenderingType;
+import frustum3d.scene.Camera;
+import frustum3d.scene.CameraMovementManager;
+import frustum3d.utils.CubeFactory;
+import frustum3d.utils.Referentiel;
 
 
 public class Main extends JFrame{

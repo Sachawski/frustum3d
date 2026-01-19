@@ -1,4 +1,4 @@
-package personal.frustum.renderer;
+package frustum3d.renderer;
 
 public enum RenderingType {
     WIREFRAME,

@@ -1,4 +1,4 @@
-package personal.frustum.core;
+package frustum3d.core;
 
 public class Vertex {
 

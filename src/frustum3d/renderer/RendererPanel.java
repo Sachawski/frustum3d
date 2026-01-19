@@ -1,23 +1,23 @@
-package personal.frustum.renderer;
+package frustum3d.renderer;
 
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.List;
 import javax.swing.JPanel;
-import personal.frustum.core.Line;
-import personal.frustum.core.Mesh;
-import personal.frustum.scene.Camera;
-import personal.frustum.utils.Referentiel;
+
+import frustum3d.core.Line;
+import frustum3d.core.Mesh;
+import frustum3d.scene.Camera;
+import frustum3d.utils.Referentiel;
 
 public class RendererPanel extends JPanel {
 
-    Referentiel ref;
     List<Mesh> forms;
     RenderingEngine renderingEngine;
     RenderingType renderingType;
 
 
-    public RendererPanel(Referentiel ref, List<Mesh> forms, Camera camera, double width, double height) {
+    public RendererPanel(Referentiel ref, List<Mesh> forms, Camera camera, int width, int height) {
         this.forms = forms; 
         this.renderingEngine = new RenderingEngine(
             ref,
@@ -28,7 +28,7 @@ public class RendererPanel extends JPanel {
         this.renderingType = RenderingType.WIREFRAME;
     }
 
-    public RendererPanel(List<Mesh> forms, Camera camera, double width, double height) {
+    public RendererPanel(List<Mesh> forms, Camera camera, int width, int height) {
         this.forms = forms; 
         this.renderingEngine = new RenderingEngine(
             new Referentiel(0, 0),

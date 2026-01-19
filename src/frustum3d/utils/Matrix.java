@@ -1,6 +1,6 @@
-package personal.frustum.utils;
+package frustum3d.utils;
 
-import personal.frustum.core.Vertex;
+import frustum3d.core.Vertex;
 
 // MADE WITH AI FOR SIMPLICITY
 

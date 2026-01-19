@@ -1,4 +1,4 @@
-package personal.frustum.scene;
+package frustum3d.scene;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -22,6 +22,7 @@ public class CameraMovementManager implements KeyListener, MouseListener, MouseM
         put("right",false);
         put("left",false);
     }};
+
     public Map<String,Boolean> rotationMap = new HashMap<>() {{
         put("up",false);
         put("down",false);

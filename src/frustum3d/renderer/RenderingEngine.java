@@ -1,17 +1,17 @@
-package personal.frustum.renderer;
+package frustum3d.renderer;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import personal.frustum.core.CubeMesh;
-import personal.frustum.core.Line;
-import personal.frustum.core.Mesh;
-import personal.frustum.core.Pixel;
-import personal.frustum.core.Triangle;
-import personal.frustum.core.Vertex;
-import personal.frustum.scene.Camera;
-import personal.frustum.utils.Matrix;
-import personal.frustum.utils.Referentiel;
+import frustum3d.core.CubeMesh;
+import frustum3d.core.Line;
+import frustum3d.core.Mesh;
+import frustum3d.core.Pixel;
+import frustum3d.core.Triangle;
+import frustum3d.core.Vertex;
+import frustum3d.scene.Camera;
+import frustum3d.utils.Matrix;
+import frustum3d.utils.Referentiel;
 
 public class RenderingEngine {
     

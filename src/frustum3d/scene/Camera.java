@@ -1,7 +1,7 @@
-package personal.frustum.scene;
+package frustum3d.scene;
 
-import personal.frustum.core.Vertex;
-import personal.frustum.utils.Matrix;
+import frustum3d.core.Vertex;
+import frustum3d.utils.Matrix;
 
 public class Camera {
 

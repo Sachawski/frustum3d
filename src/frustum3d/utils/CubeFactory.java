@@ -1,7 +1,7 @@
-package personal.frustum.utils;
+package frustum3d.utils;
 
-import personal.frustum.core.CubeMesh;
-import personal.frustum.core.Vertex;
+import frustum3d.core.CubeMesh;
+import frustum3d.core.Vertex;
 
 public class CubeFactory {
 
