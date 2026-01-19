@@ -11,8 +11,9 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.Timer;
 import personal.frustum.core.Mesh;
-import personal.frustum.core.Point3D;
+import personal.frustum.core.Vertex;
 import personal.frustum.renderer.RendererPanel;
+import personal.frustum.renderer.RenderingType;
 import personal.frustum.scene.Camera;
 import personal.frustum.scene.CameraMovementManager;
 import personal.frustum.utils.CubeFactory;
@@ -34,8 +35,12 @@ public class Main extends JFrame{
 
         JPanel configPanel = new JPanel();
         configPanel.setLayout(new BoxLayout(configPanel, BoxLayout.Y_AXIS)); // vertical layout for controls
-        String[] choices = {"Wireframe","Full"};
+        String[] choices = { 
+            RenderingType.WIREFRAME.name(),
+            RenderingType.FULLMESH.name()
+        };
         final JComboBox<String> cb = new JComboBox<>(choices);
+        
         configPanel.add(cb);
 
         Camera camera = new Camera(0, 500, -500, 180, 0, width, height);
@@ -49,15 +54,15 @@ public class Main extends JFrame{
         CubeFactory cubeFactory = new CubeFactory(cubeSize);
 
         List<Mesh> forms = new ArrayList<>();
-        for (int i = -50; i < 50; i++) {
-            for (int j = -50; j < 50; j++) {
-                forms.add((Mesh) cubeFactory.buildAt(new Point3D(2*i*cubeSize,0,2*j*cubeSize)));
+        for (int i = -5; i < 5; i++) {
+            for (int j = -5; j < 5; j++) {
+                forms.add((Mesh) cubeFactory.buildAt(new Vertex(2*i*cubeSize,0,2*j*cubeSize)));
             }
         }
         // forms.add(cubeFactory.buildAt(new Point3D(0,0,0)));
         
 
-        RendererPanel renderer = new RendererPanel(ref, forms, camera);
+        RendererPanel renderer = new RendererPanel(ref, forms, camera, width, height);
         renderer.addKeyListener(movementListener);
         renderer.addMouseMotionListener(movementListener);
         renderer.addMouseListener(movementListener);
@@ -68,7 +73,18 @@ public class Main extends JFrame{
             }
         });
 
-        // Use JSplitPane for resizable panels side by side
+        cb.addActionListener(e -> {
+            RenderingType selected = RenderingType.valueOf((String) cb.getSelectedItem()); // get the selected item
+            switch (selected) {
+                case RenderingType.WIREFRAME -> {
+                    renderer.setRenderingType(RenderingType.WIREFRAME);
+                }
+                case RenderingType.FULLMESH -> {
+                    renderer.setRenderingType(RenderingType.FULLMESH);
+                }
+            }
+        });
+
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, configPanel, renderer);
         splitPane.setDividerLocation(300); // initial width of the config panel
         frame.getContentPane().add(splitPane);
@@ -78,4 +94,5 @@ public class Main extends JFrame{
         new Timer(16, e -> renderer.repaint()).start(); // ~60 FPS
 
     }
+
 }

@@ -1,21 +1,21 @@
 package personal.frustum.scene;
 
-import personal.frustum.core.Point3D;
+import personal.frustum.core.Vertex;
 import personal.frustum.utils.Matrix;
 
 public class Camera {
 
-    public Point3D position;
+    public Vertex position;
     private double yaw;
     private double pitch;
     private final double width;
     private final double height;
 
 
-    private static final Point3D worldUp = new Point3D(0,1,0);
+    private static final Vertex worldUp = new Vertex(0,1,0);
 
     public Camera(double posX, double posY, double posZ, double yaw, double pitch, double width, double heigth) {
-        this.position = new Point3D(posX, posY, posZ);
+        this.position = new Vertex(posX, posY, posZ);
         this.yaw = yaw;
         this.pitch = pitch;
         this.width = width;
@@ -23,14 +23,14 @@ public class Camera {
     }
 
     public void moveUp() {
-        Point3D forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
-        Point3D rightVector = rightVector(forwardVector);
+        Vertex forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
+        Vertex rightVector = rightVector(forwardVector);
         this.position = this.position.add(upVector(rightVector, forwardVector).scale(50));
     }
 
     public void moveDown() {
-        Point3D forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
-        Point3D rightVector = rightVector(forwardVector);
+        Vertex forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
+        Vertex rightVector = rightVector(forwardVector);
         this.position = this.position.add(upVector(rightVector, forwardVector).scale(-50));
     }
 
@@ -43,22 +43,22 @@ public class Camera {
     }
 
     public void moveForward() {        
-        Point3D forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
+        Vertex forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
         this.position = this.position.add(forwardVector.scale(50));
     }
 
     public void moveBackward() {
-        Point3D forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
+        Vertex forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
         this.position = this.position.add(forwardVector.scale(-50));
     }
 
     public void moveRight() {
-        Point3D forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
+        Vertex forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
         this.position = this.position.add(rightVector(forwardVector).scale(50));
     }
 
     public void moveLeft() {
-        Point3D forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
+        Vertex forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
         this.position = this.position.add(rightVector(forwardVector).scale(-50));
     }
 
@@ -90,9 +90,9 @@ public class Camera {
         Matrix projection = createProjectionMatrix();
 
         Matrix view = createViewMatrix(
-            position.getPosX(),
-            position.getPosY(),
-            position.getPosZ(),
+            position.getX(),
+            position.getY(),
+            position.getZ(),
             yaw,
             pitch
         );
@@ -101,19 +101,19 @@ public class Camera {
         return projection.multiply(view).multiply(model);
     }
 
-    public boolean isPointBehindCamera(Point3D point) {
-        return Double.isNaN(point.getPosX()) || 
-               Double.isNaN(point.getPosY()) || 
-               Double.isNaN(point.getPosZ());
+    public boolean isPointBehindCamera(Vertex point) {
+        return Double.isNaN(point.getX()) || 
+               Double.isNaN(point.getY()) || 
+               Double.isNaN(point.getZ());
     }
 
-    public Point3D[] clipLine(Point3D p1, Point3D p2) {
+    public Vertex[] clipLine(Vertex p1, Vertex p2) {
         if (isPointBehindCamera(p1) && isPointBehindCamera(p2)) {
             return null;
         }
         
-        double x1 = p1.getPosX(), y1 = p1.getPosY(), z1 = p1.getPosZ();
-        double x2 = p2.getPosX(), y2 = p2.getPosY(), z2 = p2.getPosZ();
+        double x1 = p1.getX(), y1 = p1.getY(), z1 = p1.getZ();
+        double x2 = p2.getX(), y2 = p2.getY(), z2 = p2.getZ();
         
         double dx = x2 - x1;
         double dy = y2 - y1;
@@ -162,41 +162,69 @@ public class Camera {
             return null;
         }
         
-        Point3D clippedP1 = new Point3D(
+        Vertex clippedP1 = new Vertex(
             x1 + tNear * dx,
             y1 + tNear * dy,
             z1 + tNear * dz
         );
         
-        Point3D clippedP2 = new Point3D(
+        Vertex clippedP2 = new Vertex(
             x1 + tFar * dx,
             y1 + tFar * dy,
             z1 + tFar * dz
         );
         
-        return new Point3D[] {clippedP1, clippedP2};
+        return new Vertex[] {clippedP1, clippedP2};
     }
     
-    public boolean isFaceFrontFacing(int[] faceVertices, Point3D[] transformedPoints) {
+    public boolean isFaceFrontFacing(int[] faceVertices, Vertex[] transformedPoints) {
         // Get 3 vertices of the face (first 3 define the plane)
-        Point3D v0 = transformedPoints[faceVertices[0]];
-        Point3D v1 = transformedPoints[faceVertices[1]];
-        Point3D v2 = transformedPoints[faceVertices[2]];
+        Vertex v0 = transformedPoints[faceVertices[0]];
+        Vertex v1 = transformedPoints[faceVertices[1]];
+        Vertex v2 = transformedPoints[faceVertices[2]];
         
         // Calculate face normal using cross product
-        Point3D edge1 = v1.substract(v0);
-        Point3D edge2 = v2.substract(v0);
-        Point3D normal = edge1.vectorialProduct(edge2);
+        Vertex edge1 = v1.substract(v0);
+        Vertex edge2 = v2.substract(v0);
+        Vertex normal = edge1.vectorialProduct(edge2);
         
         // Calculate face center
-        Point3D faceCenter = new Point3D(
-            (v0.getPosX() + v1.getPosX() + v2.getPosX()) / 3.0,
-            (v0.getPosY() + v1.getPosY() + v2.getPosY()) / 3.0,
-            (v0.getPosZ() + v1.getPosZ() + v2.getPosZ()) / 3.0
+        Vertex faceCenter = new Vertex(
+            (v0.getX() + v1.getX() + v2.getX()) / 3.0,
+            (v0.getY() + v1.getY() + v2.getY()) / 3.0,
+            (v0.getZ() + v1.getZ() + v2.getZ()) / 3.0
         );
         
         // Vector from camera to face center
-        Point3D viewVector = faceCenter;
+        Vertex viewVector = faceCenter;
+        
+        // Dot product: if positive, face is back-facing (normal points away from camera)
+        double dotProduct = normal.dot(viewVector);
+        
+        // If dot product < 0, normal points toward camera = front-facing
+        return dotProduct < 0;
+    }
+
+    public boolean isFaceFrontFacing(Vertex[] transformedPoints) {
+        // Get 3 vertices of the face (first 3 define the plane)
+        Vertex v0 = transformedPoints[0];
+        Vertex v1 = transformedPoints[1];
+        Vertex v2 = transformedPoints[2];
+        
+        // Calculate face normal using cross product
+        Vertex edge1 = v1.substract(v0);
+        Vertex edge2 = v2.substract(v0);
+        Vertex normal = edge1.vectorialProduct(edge2);
+        
+        // Calculate face center
+        Vertex faceCenter = new Vertex(
+            (v0.getX() + v1.getX() + v2.getX()) / 3.0,
+            (v0.getY() + v1.getY() + v2.getY()) / 3.0,
+            (v0.getZ() + v1.getZ() + v2.getZ()) / 3.0
+        );
+        
+        // Vector from camera to face center
+        Vertex viewVector = faceCenter;
         
         // Dot product: if positive, face is back-facing (normal points away from camera)
         double dotProduct = normal.dot(viewVector);
@@ -205,48 +233,48 @@ public class Camera {
         return dotProduct < 0;
     }
     
-    private Point3D forwardVector(double radianYaw, double radianPitch) {
-        return new Point3D(
+    private Vertex forwardVector(double radianYaw, double radianPitch) {
+        return new Vertex(
             Math.cos(radianPitch) * Math.sin(radianYaw),
             Math.sin(radianPitch),
             Math.cos(radianPitch) * Math.cos(radianYaw)
         ).normalize();
     }
 
-    private Point3D rightVector(Point3D forwardVector) {
+    private Vertex rightVector(Vertex forwardVector) {
         return worldUp.vectorialProduct(forwardVector).normalize();
     }
 
-    private Point3D upVector(Point3D rightVector, Point3D forwardVector) {
+    private Vertex upVector(Vertex rightVector, Vertex forwardVector) {
         return forwardVector.vectorialProduct(rightVector).normalize();
     }
 
      private Matrix createViewMatrix(double posX, double  posY, double  posZ, double yawDeg, double pitchDeg) {
-        Point3D eye = new Point3D(posX, posY, posZ);
+        Vertex eye = new Vertex(posX, posY, posZ);
         double yawRadian = Math.toRadians(yawDeg);
         double pitchRadian = Math.toRadians(pitchDeg);
         // 1️⃣ Direction caméra
-        Point3D forward = forwardVector(yawRadian, pitchRadian);
+        Vertex forward = forwardVector(yawRadian, pitchRadian);
 
         // 2️⃣ Base orthonormée caméra (repère droit)
-        Point3D right = worldUp.vectorialProduct(forward).normalize();
-        Point3D up    = forward.vectorialProduct(right).normalize();
+        Vertex right = worldUp.vectorialProduct(forward).normalize();
+        Vertex up    = forward.vectorialProduct(right).normalize();
 
         // 3️⃣ Construction de la view matrix
         Matrix view = Matrix.identity();
 
         // rotation
-        view.set(0, 0, right.getPosX());
-        view.set(0, 1, right.getPosY());
-        view.set(0, 2, right.getPosZ());
+        view.set(0, 0, right.getX());
+        view.set(0, 1, right.getY());
+        view.set(0, 2, right.getZ());
 
-        view.set(1, 0, up.getPosX());
-        view.set(1, 1, up.getPosY());
-        view.set(1, 2, up.getPosZ());
+        view.set(1, 0, up.getX());
+        view.set(1, 1, up.getY());
+        view.set(1, 2, up.getZ());
 
-        view.set(2, 0, -forward.getPosX());
-        view.set(2, 1, -forward.getPosY());
-        view.set(2, 2, -forward.getPosZ());
+        view.set(2, 0, -forward.getX());
+        view.set(2, 1, -forward.getY());
+        view.set(2, 2, -forward.getZ());
 
         view.set(0, 3, -right.dot(eye));
         view.set(1, 3, -up.dot(eye));

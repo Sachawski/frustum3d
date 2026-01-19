@@ -8,7 +8,7 @@ import java.util.Map;
 public class CubeMesh implements Mesh {
 
     public static final int POINT_NUMBER = 8;
-    private List<Point3D> vertices;
+    private List<Vertex> vertices;
     private static final int[][] FACES = {
         {0, 3, 2, 1},  // Back face
         {4, 5, 6 ,7},  // Front face
@@ -46,7 +46,7 @@ public class CubeMesh implements Mesh {
         put(11,new int[] {3,4});
     }};
 
-    public CubeMesh(List<Point3D> points) throws Exception {
+    public CubeMesh(List<Vertex> points) throws Exception {
         if (points.size() > POINT_NUMBER) {
             this.vertices = points;
         }
@@ -55,15 +55,15 @@ public class CubeMesh implements Mesh {
         }
     }
 
-    public CubeMesh(Point3D firstPoint,
-                Point3D secondPoint,
-                Point3D thirdPoint,
-                Point3D fourthPoint,
-                Point3D fifthPoint,
-                Point3D sixthPoint,
-                Point3D seventhPoint,
-                Point3D eigthPoint) {
-        List<Point3D> newPoints = new ArrayList<>();
+    public CubeMesh(Vertex firstPoint,
+                Vertex secondPoint,
+                Vertex thirdPoint,
+                Vertex fourthPoint,
+                Vertex fifthPoint,
+                Vertex sixthPoint,
+                Vertex seventhPoint,
+                Vertex eigthPoint) {
+        List<Vertex> newPoints = new ArrayList<>();
         newPoints.add(firstPoint);
         newPoints.add(secondPoint);
         newPoints.add(thirdPoint);
@@ -86,7 +86,7 @@ public class CubeMesh implements Mesh {
     }
 
     @Override
-    public List<Point3D> getVertices() {
+    public List<Vertex> getVertices() {
         return vertices;
     }
 

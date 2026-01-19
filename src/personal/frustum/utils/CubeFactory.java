@@ -1,7 +1,7 @@
 package personal.frustum.utils;
 
 import personal.frustum.core.CubeMesh;
-import personal.frustum.core.Point3D;
+import personal.frustum.core.Vertex;
 
 public class CubeFactory {
 
@@ -11,16 +11,16 @@ public class CubeFactory {
         this.cubeSize = cubeSize;
     }
 
-    public CubeMesh buildAt(Point3D point) { 
+    public CubeMesh buildAt(Vertex point) { 
         return new CubeMesh(
-            new Point3D(point.getPosX(), point.getPosY(), point.getPosZ() - cubeSize),
-            new Point3D(point.getPosX() + cubeSize, point.getPosY(), point.getPosZ() - cubeSize),
-            new Point3D(point.getPosX() + cubeSize, point.getPosY() + cubeSize, point.getPosZ() - cubeSize),
-            new Point3D(point.getPosX(), point.getPosY() + cubeSize, point.getPosZ() - cubeSize),
-            new Point3D(point.getPosX(), point.getPosY(), point.getPosZ()),
-            new Point3D(point.getPosX() + cubeSize, point.getPosY(), point.getPosZ()),
-            new Point3D(point.getPosX() + cubeSize, point.getPosY() + cubeSize, point.getPosZ()),
-            new Point3D(point.getPosX(), point.getPosY() + cubeSize, point.getPosZ())
+            new Vertex(point.getX(), point.getY(), point.getZ() - cubeSize),
+            new Vertex(point.getX() + cubeSize, point.getY(), point.getZ() - cubeSize),
+            new Vertex(point.getX() + cubeSize, point.getY() + cubeSize, point.getZ() - cubeSize),
+            new Vertex(point.getX(), point.getY() + cubeSize, point.getZ() - cubeSize),
+            new Vertex(point.getX(), point.getY(), point.getZ()),
+            new Vertex(point.getX() + cubeSize, point.getY(), point.getZ()),
+            new Vertex(point.getX() + cubeSize, point.getY() + cubeSize, point.getZ()),
+            new Vertex(point.getX(), point.getY() + cubeSize, point.getZ())
             
         );
     }

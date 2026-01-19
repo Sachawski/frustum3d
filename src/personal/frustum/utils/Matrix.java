@@ -1,6 +1,6 @@
 package personal.frustum.utils;
 
-import personal.frustum.core.Point3D;
+import personal.frustum.core.Vertex;
 
 // MADE WITH AI FOR SIMPLICITY
 
@@ -82,10 +82,10 @@ public class Matrix {
         return result;
     }
 
-    public Point3D multiply(Point3D point) {
-        double x = point.getPosX();
-        double y = point.getPosY();
-        double z = point.getPosZ();
+    public Vertex multiply(Vertex point) {
+        double x = point.getX();
+        double y = point.getY();
+        double z = point.getZ();
         double w = 1.0;
 
         double newX = this.get(0, 0) * x + this.get(0, 1) * y + this.get(0, 2) * z + this.get(0, 3) * w;
@@ -103,7 +103,7 @@ public class Matrix {
             newZ = Double.NaN;
         }
 
-        return new Point3D(newX, newY, newZ);
+        return new Vertex(newX, newY, newZ);
     }
 
     public static Matrix rotationX(double angleRadians) {
@@ -161,18 +161,18 @@ public class Matrix {
         return matrix;
     }
 
-    public static Matrix lookAt(Point3D eye, Point3D target, Point3D up) {
-        double eyeX = eye.getPosX();
-        double eyeY = eye.getPosY();
-        double eyeZ = eye.getPosZ();
+    public static Matrix lookAt(Vertex eye, Vertex target, Vertex up) {
+        double eyeX = eye.getX();
+        double eyeY = eye.getY();
+        double eyeZ = eye.getZ();
         
-        double targetX = target.getPosX();
-        double targetY = target.getPosY();
-        double targetZ = target.getPosZ();
+        double targetX = target.getX();
+        double targetY = target.getY();
+        double targetZ = target.getZ();
         
-        double upX = up.getPosX();
-        double upY = up.getPosY();
-        double upZ = up.getPosZ();
+        double upX = up.getX();
+        double upY = up.getY();
+        double upZ = up.getZ();
 
         double zAxisX = eyeX - targetX;
         double zAxisY = eyeY - targetY;

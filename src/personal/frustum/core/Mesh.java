@@ -9,7 +9,7 @@ public interface Mesh {
 
     public int[][] getEdges();
 
-    public abstract List<Point3D> getVertices();
+    public abstract List<Vertex> getVertices();
 
     public Map<Integer, int[]> getEdgesFacesMap();
 
