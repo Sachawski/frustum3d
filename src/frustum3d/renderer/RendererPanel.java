@@ -1,14 +1,12 @@
 package frustum3d.renderer;
 
+import frustum3d.core.Mesh;
+import frustum3d.scene.Camera;
+import frustum3d.utils.Referentiel;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.List;
 import javax.swing.JPanel;
-
-import frustum3d.core.Line;
-import frustum3d.core.Mesh;
-import frustum3d.scene.Camera;
-import frustum3d.utils.Referentiel;
 
 public class RendererPanel extends JPanel {
 
@@ -46,16 +44,16 @@ public class RendererPanel extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         switch (this.renderingType) {
-            case RenderingType.FULLMESH -> fullMeshRendering(g);
+            // case RenderingType.FULLMESH -> fullMeshRendering(g);
             case RenderingType.WIREFRAME -> wireFrameRendering(g);
         }
             
     }
 
     private void wireFrameRendering(Graphics g) {
-        List<Line> lines = renderingEngine.wireFrameRendering(forms);
+        List<ScreenLine> lines = renderingEngine.wireFrameRendering(forms);
         g.setColor(Color.BLACK);
-        for (Line line : lines) {
+        for (ScreenLine line : lines) {
             g.drawLine(
                 line.pixel1().x(), 
                 line.pixel1().y(), 
@@ -65,18 +63,18 @@ public class RendererPanel extends JPanel {
         }
     }
 
-    private void fullMeshRendering(Graphics g) {
-        List<Line> lines = renderingEngine.fullMeshRendering(forms);
-        g.setColor(Color.BLACK);
-        for (Line line : lines) {
-            g.drawLine(
-                line.pixel1().x(), 
-                line.pixel1().y(), 
-                line.pixel2().x(),
-                line.pixel2().y()
-            );
-        }
-    }
+    // private void fullMeshRendering(Graphics g) {
+    //     List<Line> lines = renderingEngine.fullMeshRendering(forms);
+    //     g.setColor(Color.BLACK);
+    //     for (Line line : lines) {
+    //         g.drawLine(
+    //             line.pixel1().x(), 
+    //             line.pixel1().y(), 
+    //             line.pixel2().x(),
+    //             line.pixel2().y()
+    //         );
+    //     }
+    // }
 
     // private void wireFrameRendering(Graphics g) {
     //     g.setColor(Color.BLACK);

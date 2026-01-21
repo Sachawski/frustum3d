@@ -1,52 +1,23 @@
 package frustum3d.core;
 
-public class ClipVertex {
+public class ClipVertex extends Vertex {
 
-    private double x;
-    private double y;
-    private double z;
     private double w;
 
     public ClipVertex(double x, double y, double z, double w) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        super(x, y, z);
         this.w = w;
-    }
-
-    public double getX() {
-        return x;
-    }
-
-    public double getY() {
-        return y;
-    }
-
-    public double getZ() {
-        return z;
     }
 
     public double getW() {
         return w;
     }
 
-    public void setX(double newX) {
-        this.x = newX;
-    }
-
-    public void setY(double newY) {
-        this.y = newY;
-    }
-
-    public void setZ(double newZ) {
-        this.z = newZ;
-    }
-
     public void setW(double newW) {
-        this.z = newW;
+        this.w = newW;
     }
 
-    public Vertex toPoint3D() {
+    public Vertex toVertex() {
         double divider = this.getW();
         return new Vertex(
             this.getX()/divider,
@@ -116,6 +87,6 @@ public class ClipVertex {
 
     @Override
     public String toString(){
-        return "Vertex(" + this.x + "," + this.y + "," + this.z + ")";
+        return "ClipVertex(" + this.getX() + "," + this.getY() + "," + this.getZ() + " " + this.getW() + ")";
     }
 }

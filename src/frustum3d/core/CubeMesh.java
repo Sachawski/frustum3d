@@ -1,6 +1,7 @@
 package frustum3d.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +77,7 @@ public class CubeMesh implements Mesh {
     }
 
     @Override
-    public int[][] getFaces() {
+    public int[][] getFacesDef() {
         return FACES;
     }
 
@@ -97,6 +98,22 @@ public class CubeMesh implements Mesh {
 
     public int[] getFaceVertices(int faceIndex) {
         return FACES[faceIndex];
+    }
+
+    public List<Polygon> getFaces() {
+        List<Polygon> faces = new ArrayList<Polygon>();
+        for (int[] facesDef : FACES) {
+            List<Vertex> face = new ArrayList<>(
+                Arrays.asList(new Vertex[] {
+                    vertices.get(facesDef[0]),
+                    vertices.get(facesDef[1]),
+                    vertices.get(facesDef[2]),
+                    vertices.get(facesDef[3]),
+                })
+            );
+            faces.add(new Polygon(face));
+        }
+        return faces;
     }
 
 }

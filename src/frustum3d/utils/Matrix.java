@@ -1,5 +1,6 @@
 package frustum3d.utils;
 
+import frustum3d.core.ClipVertex;
 import frustum3d.core.Vertex;
 
 // MADE WITH AI FOR SIMPLICITY
@@ -91,19 +92,22 @@ public class Matrix {
         double newX = this.get(0, 0) * x + this.get(0, 1) * y + this.get(0, 2) * z + this.get(0, 3) * w;
         double newY = this.get(1, 0) * x + this.get(1, 1) * y + this.get(1, 2) * z + this.get(1, 3) * w;
         double newZ = this.get(2, 0) * x + this.get(2, 1) * y + this.get(2, 2) * z + this.get(2, 3) * w;
-        double newW = this.get(3, 0) * x + this.get(3, 1) * y + this.get(3, 2) * z + this.get(3, 3) * w;
-
-        if (newW > 0.0) {
-            newX /= newW;
-            newY /= newW;
-            newZ /= newW;
-        } else {
-            newX = Double.NaN;
-            newY = Double.NaN;
-            newZ = Double.NaN;
-        }
 
         return new Vertex(newX, newY, newZ);
+    }
+
+    public ClipVertex multiplyClip(Vertex point) {
+        double x = point.getX();
+        double y = point.getY();
+        double z = point.getZ();
+        double w = 1.0;
+
+        double newX = this.get(0, 0) * x + this.get(0, 1) * y + this.get(0, 2) * z + this.get(0, 3) * w;
+        double newY = this.get(1, 0) * x + this.get(1, 1) * y + this.get(1, 2) * z + this.get(1, 3) * w;
+        double newZ = this.get(2, 0) * x + this.get(2, 1) * y + this.get(2, 2) * z + this.get(2, 3) * w;
+        double newW = this.get(3, 0) * x + this.get(3, 1) * y + this.get(3, 2) * z + this.get(3, 3) * w;
+
+        return new ClipVertex(newX, newY, newZ, newW);
     }
 
     public static Matrix rotationX(double angleRadians) {

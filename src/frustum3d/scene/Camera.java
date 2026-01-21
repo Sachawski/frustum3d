@@ -1,7 +1,12 @@
 package frustum3d.scene;
 
+import frustum3d.core.ClipLine;
+import frustum3d.core.ClipVertex;
+import frustum3d.core.Line;
 import frustum3d.core.Vertex;
 import frustum3d.utils.Matrix;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Camera {
 
@@ -10,7 +15,18 @@ public class Camera {
     private double pitch;
     private final double width;
     private final double height;
-
+    private final double aspectRatio; // square window
+    private final double fovDegrees;
+    private final double nearPlane;  // prevent division by zero
+    private final double farPlane; // cull distant objects 
+    private static double[][] planes = {
+                                    {  1,  0,  0,  1 }, // left   :  x + w
+                                    { -1,  0,  0,  1 }, // right  : -x + w
+                                    {  0,  1,  0,  1 }, // bottom :  y + w
+                                    {  0, -1,  0,  1 }, // top    : -y + w
+                                    {  0,  0,  1,  1 }, // near   :  z + w
+                                    {  0,  0, -1,  1 }  // far    : -z + w
+                                };
 
     private static final Vertex worldUp = new Vertex(0,1,0);
 
@@ -20,6 +36,10 @@ public class Camera {
         this.pitch = pitch;
         this.width = width;
         this.height = heigth;
+        this.aspectRatio = width/heigth;
+        this.fovDegrees = 60.0;
+        this.nearPlane = 1;
+        this.farPlane = 100000.0;
     }
 
     public void moveUp() {
@@ -89,25 +109,59 @@ public class Camera {
     public Matrix createMVPMatrix() {
         Matrix projection = createProjectionMatrix();
 
-        Matrix view = createViewMatrix(
-            position.getX(),
-            position.getY(),
-            position.getZ(),
-            yaw,
-            pitch
-        );
+        Matrix view = createViewMatrix();
+
         Matrix model = Matrix.identity(); // objects don't move
         
         return projection.multiply(view).multiply(model);
     }
 
-    public boolean isPointBehindCamera(Vertex point) {
+public Matrix createViewMatrix() {
+        Vertex eye = this.position;
+        double yawRadian = Math.toRadians(yaw);
+        double pitchRadian = Math.toRadians(pitch);
+        // 1️⃣ Direction caméra
+        Vertex forward = forwardVector(yawRadian, pitchRadian);
+
+        // 2️⃣ Base orthonormée caméra (repère droit)
+        Vertex right = worldUp.vectorialProduct(forward).normalize();
+        Vertex up    = forward.vectorialProduct(right).normalize();
+
+        // 3️⃣ Construction de la view matrix
+        Matrix view = Matrix.identity();
+
+        // rotation
+        view.set(0, 0, right.getX());
+        view.set(0, 1, right.getY());
+        view.set(0, 2, right.getZ());
+
+        view.set(1, 0, up.getX());
+        view.set(1, 1, up.getY());
+        view.set(1, 2, up.getZ());
+
+        view.set(2, 0, -forward.getX());
+        view.set(2, 1, -forward.getY());
+        view.set(2, 2, -forward.getZ());
+
+        view.set(0, 3, -right.dot(eye));
+        view.set(1, 3, -up.dot(eye));
+        view.set(2, 3, forward.dot(eye));
+        return view;
+    }
+    
+    public Matrix createProjectionMatrix() {        
+        return Matrix.perspective(fovDegrees, aspectRatio, nearPlane, farPlane);
+    }
+
+    public boolean isPointBehindCamera(ClipVertex point) {
         return Double.isNaN(point.getX()) || 
                Double.isNaN(point.getY()) || 
                Double.isNaN(point.getZ());
     }
 
-    public Vertex[] clipLine(Vertex p1, Vertex p2) {
+
+
+    public Vertex[] clipLine(ClipVertex p1, ClipVertex p2) {
         if (isPointBehindCamera(p1) && isPointBehindCamera(p2)) {
             return null;
         }
@@ -232,6 +286,70 @@ public class Camera {
         // If dot product < 0, normal points toward camera = front-facing
         return dotProduct < 0;
     }
+
+    public List<ClipLine> getClippedLineOptimized(List<ClipLine> lines) {
+        List<ClipLine> result = new ArrayList<>();
+        double eps = 1e-10;
+        for (ClipLine line : lines) {
+            ClipVertex p0 = line.from();
+            ClipVertex p1 = line.to();
+            double tEnter = 0.0;
+            double tExit = 1.0;
+            boolean isLineRejected = false;
+            double x0 = p0.getX();
+            double y0 = p0.getY();
+            double z0 = p0.getZ();
+            double w0 = p0.getW();
+            double x1 = p1.getX();
+            double y1 = p1.getY();
+            double z1 = p1.getZ();
+            double w1 = p1.getW();
+
+            for (double[] plane : planes) {
+                double f0 = plane[0]*x0 + plane[1]*y0 + plane[2]*z0 + plane[3]*w0;
+                double f1 = plane[0]*x1 + plane[1]*y1 + plane[2]*z1 + plane[3]*w1;
+                double fd = f1 - f0;
+                if ((Math.abs(fd) < eps)) {
+                    if (f0 < 0) {
+                        isLineRejected = true;
+                        break;
+                    }
+                    continue;
+                }
+                double t = - f0/fd;
+                if (fd > 0) {
+                    tEnter = Math.max(tEnter, t);
+                } else {
+                    tExit = Math.min(tExit, t);
+                }
+                if (tEnter > tExit) {
+                    isLineRejected = true;
+                    break;
+                }
+            }
+
+            ClipVertex c0 = p0.lerp(p1, tEnter);
+            ClipVertex c1 = p0.lerp(p1, tExit);
+            if (!isLineRejected) {
+               result.add(new ClipLine(c0, c1));
+            }
+        }
+        return result;
+    }
+
+    public List<Line> toNDCSpace(List<ClipLine> clippedLines) {
+        return clippedLines.stream().map( clippedLine -> {
+            double fromX = clippedLine.from().getX();
+            double fromY = clippedLine.from().getY();
+            double fromZ = clippedLine.from().getZ();            
+            double fromW = clippedLine.from().getW();
+            double toX = clippedLine.to().getX();
+            double toY = clippedLine.to().getY();
+            double toZ = clippedLine.to().getZ();
+            double toW = clippedLine.to().getW();
+            return new Line(new Vertex(fromX/fromW, fromY/fromW, fromZ/fromW), new Vertex(toX/toW, toY/toW, toZ/toW));
+        }).toList();
+    }
     
     private Vertex forwardVector(double radianYaw, double radianPitch) {
         return new Vertex(
@@ -249,46 +367,6 @@ public class Camera {
         return forwardVector.vectorialProduct(rightVector).normalize();
     }
 
-     private Matrix createViewMatrix(double posX, double  posY, double  posZ, double yawDeg, double pitchDeg) {
-        Vertex eye = new Vertex(posX, posY, posZ);
-        double yawRadian = Math.toRadians(yawDeg);
-        double pitchRadian = Math.toRadians(pitchDeg);
-        // 1️⃣ Direction caméra
-        Vertex forward = forwardVector(yawRadian, pitchRadian);
-
-        // 2️⃣ Base orthonormée caméra (repère droit)
-        Vertex right = worldUp.vectorialProduct(forward).normalize();
-        Vertex up    = forward.vectorialProduct(right).normalize();
-
-        // 3️⃣ Construction de la view matrix
-        Matrix view = Matrix.identity();
-
-        // rotation
-        view.set(0, 0, right.getX());
-        view.set(0, 1, right.getY());
-        view.set(0, 2, right.getZ());
-
-        view.set(1, 0, up.getX());
-        view.set(1, 1, up.getY());
-        view.set(1, 2, up.getZ());
-
-        view.set(2, 0, -forward.getX());
-        view.set(2, 1, -forward.getY());
-        view.set(2, 2, -forward.getZ());
-
-        view.set(0, 3, -right.dot(eye));
-        view.set(1, 3, -up.dot(eye));
-        view.set(2, 3, forward.dot(eye));
-        return view;
-    }
     
-    private Matrix createProjectionMatrix() {
-        double aspectRatio = this.width/this.height; // square window
-        double fovDegrees = 60.0;
-        double nearPlane = 1;  // prevent division by zero
-        double farPlane = 100000.0; // cull distant objects
-        
-        return Matrix.perspective(fovDegrees, aspectRatio, nearPlane, farPlane);
-    }
 
 }

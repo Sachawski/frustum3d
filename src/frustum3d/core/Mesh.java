@@ -5,7 +5,7 @@ import java.util.Map;
 
 public interface Mesh {
 
-    public int[][] getFaces();
+    public int[][] getFacesDef();
 
     public int[][] getEdges();
 
