@@ -26,17 +26,6 @@ public class RendererPanel extends JPanel {
         this.renderingType = RenderingType.WIREFRAME;
     }
 
-    public RendererPanel(List<Mesh> forms, Camera camera, int width, int height) {
-        this.forms = forms; 
-        this.renderingEngine = new RenderingEngine(
-            new Referentiel(0, 0),
-            width,
-            height,
-            camera
-        );
-        this.renderingType = RenderingType.WIREFRAME;
-    }
-
     public void setRenderingType(RenderingType newRenderingType) {
         this.renderingType = newRenderingType;
     }
@@ -44,7 +33,7 @@ public class RendererPanel extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         switch (this.renderingType) {
-            // case RenderingType.FULLMESH -> fullMeshRendering(g);
+            case RenderingType.FULLMESH -> fullMeshRendering(g);
             case RenderingType.WIREFRAME -> wireFrameRendering(g);
         }
             
@@ -63,18 +52,18 @@ public class RendererPanel extends JPanel {
         }
     }
 
-    // private void fullMeshRendering(Graphics g) {
-    //     List<Line> lines = renderingEngine.fullMeshRendering(forms);
-    //     g.setColor(Color.BLACK);
-    //     for (Line line : lines) {
-    //         g.drawLine(
-    //             line.pixel1().x(), 
-    //             line.pixel1().y(), 
-    //             line.pixel2().x(),
-    //             line.pixel2().y()
-    //         );
-    //     }
-    // }
+     private void fullMeshRendering(Graphics g) {
+         List<ScreenLine> lines = renderingEngine.fullMeshRenderingOptimized(forms);
+         g.setColor(Color.BLACK);
+         for (ScreenLine line : lines) {
+             g.drawLine(
+                 line.pixel1().x(),
+                 line.pixel1().y(),
+                 line.pixel2().x(),
+                 line.pixel2().y()
+             );
+         }
+     }
 
     // private void wireFrameRendering(Graphics g) {
     //     g.setColor(Color.BLACK);
