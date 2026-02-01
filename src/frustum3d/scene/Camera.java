@@ -34,7 +34,7 @@ public class Camera {
         this.position = new Vertex(posX, posY, posZ);
         this.yaw = yaw;
         this.pitch = pitch;
-        this.aspectRatio = width/heigth;
+        this.aspectRatio = (double) 16 /9;
         this.fovDegrees = 60.0;
         this.nearPlane = 1;
         this.farPlane = 100000.0;

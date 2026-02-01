@@ -13,17 +13,15 @@ import frustum3d.scene.Camera;
 import frustum3d.utils.Matrix;
 import frustum3d.utils.Referentiel;
 
-import javax.sound.sampled.Clip;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 
 public class RenderingEngine {
     
-    private final Referentiel ref;
-    private final double width;
-    private final double height;
+    private Referentiel ref;
+    private double width;
+    private double height;
     private final Camera camera;
 
     public RenderingEngine(Referentiel ref,
@@ -34,6 +32,15 @@ public class RenderingEngine {
         this.width = width;
         this.height = height;
         this.camera = camera;
+    }
+
+    public void resize(int width, int height){
+        this.width = width;
+        this.height = height;
+    }
+
+    public void setRef(Referentiel ref) {
+        this.ref = ref;
     }
 
     public List<ScreenLine> wireFrameRendering(List<Mesh> meshes) {
