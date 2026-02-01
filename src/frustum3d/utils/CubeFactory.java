@@ -1,7 +1,7 @@
 package frustum3d.utils;
 
-import frustum3d.core.CubeMesh;
-import frustum3d.core.Vertex;
+import frustum3d.core.meshes.CubeMesh;
+import frustum3d.core.view.Vertex;
 
 public class CubeFactory {
 
@@ -21,7 +21,6 @@ public class CubeFactory {
             new Vertex(point.getX() + cubeSize, point.getY(), point.getZ()),
             new Vertex(point.getX() + cubeSize, point.getY() + cubeSize, point.getZ()),
             new Vertex(point.getX(), point.getY() + cubeSize, point.getZ())
-            
         );
     }
 }

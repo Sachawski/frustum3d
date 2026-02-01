@@ -1,12 +1,13 @@
 package frustum3d.scene;
 
-import frustum3d.core.ClipLine;
-import frustum3d.core.ClipVertex;
-import frustum3d.core.Line;
-import frustum3d.core.Vertex;
+import frustum3d.core.clip.ClipLine;
+import frustum3d.core.clip.ClipVertex;
+import frustum3d.core.view.Line;
+import frustum3d.core.view.Vertex;
 import frustum3d.utils.Matrix;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class Camera {
 
@@ -79,15 +80,11 @@ public class Camera {
     }
 
     public void rotateRight(){
-        if (pitch < 89) {
-            yaw = yaw + 1;
-        }
+        yaw = yaw + 1;
     }
 
     public void rotateLeft(){
-        if (pitch > -89) {
-            yaw = yaw - 1;
-        }
+        yaw = yaw - 1;
     }
 
     public Matrix createViewMatrix() {
@@ -149,7 +146,7 @@ public class Camera {
         // Dot product: if positive, face is back-facing (normal points away from camera)
         double dotProduct = normal.dot(viewVector);
         
-        // If dot product < 0, normal points toward camera = front-facing
+        // If dot product > 0, normal points toward camera = front-facing
         return dotProduct > 0;
     }
 
@@ -203,6 +200,58 @@ public class Camera {
         return result;
     }
 
+    public List<ClipLine> getClippedVertices(List<ClipVertex> vertices) {
+        ClipVertex curr;
+        ClipVertex prev;
+        for (double[] plane : planes) {
+            List<ClipVertex> output = new ArrayList<>();
+            prev = vertices.getLast();
+            boolean prevInside = inside(plane, prev);
+            for (ClipVertex vertex : vertices) {
+                curr = vertex;
+                boolean currInside = inside(plane, curr);
+                if (currInside && prevInside) {
+                    output.add(curr);
+                } else if (currInside) {
+                    output.add(prev.lerp(curr, planIntersection(plane, prev, curr)));
+                    output.add(curr);
+                } else if (prevInside) {
+                    output.add(prev.lerp(curr, planIntersection(plane, prev, curr)));
+                }
+                prev = curr;
+                prevInside = currInside;
+            }
+            vertices = output;
+            if (vertices.isEmpty()) {
+                break;
+            }
+        }
+        if (!vertices.isEmpty()) {
+            vertices.add(vertices.getFirst());
+        }
+        List<ClipVertex> finalVertices = vertices;
+        return IntStream.range(0, vertices.size()-1).mapToObj(i -> new ClipLine(finalVertices.get(i), finalVertices.get(i+1))).toList();
+    }
+
+    private boolean inside(double[] plane, ClipVertex vertex) {
+        return (plane[0]*vertex.getX() +
+                plane[1]*vertex.getY() +
+                plane[2]*vertex.getZ() +
+                plane[3]*vertex.getW() >= 0);
+    }
+
+    private double planIntersection(double[] plane, ClipVertex vertex1, ClipVertex vertex2 ) {
+        double f0 = plane[0]*vertex1.getX() +
+                plane[1]*vertex1.getY() +
+                plane[2]*vertex1.getZ() +
+                plane[3]*vertex1.getW();
+        double f1 = plane[0]*vertex2.getX() +
+                plane[1]*vertex2.getY() +
+                plane[2]*vertex2.getZ() +
+                plane[3]*vertex2.getW();
+        return f0 / (f0 - f1);
+    }
+
     public List<Line> toNDCSpace(List<ClipLine> clippedLines) {
         return clippedLines.stream().map( clippedLine -> {
             double fromX = clippedLine.from().getX();
@@ -228,11 +277,5 @@ public class Camera {
     private Vertex rightVector(Vertex forwardVector) {
         return worldUp.vectorialProduct(forwardVector).normalize();
     }
-
-    private Vertex upVector(Vertex rightVector, Vertex forwardVector) {
-        return forwardVector.vectorialProduct(rightVector).normalize();
-    }
-
-    
 
 }

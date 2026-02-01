@@ -1,7 +1,6 @@
 package frustum3d;
 
-import java.awt.GraphicsEnvironment;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.BoxLayout;
@@ -10,15 +9,15 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.Timer;
-
-import frustum3d.core.Mesh;
-import frustum3d.core.Vertex;
+import frustum3d.core.meshes.Mesh;
+import frustum3d.core.view.Vertex;
 import frustum3d.renderer.RendererPanel;
 import frustum3d.renderer.RenderingType;
 import frustum3d.scene.Camera;
 import frustum3d.scene.CameraMovementManager;
 import frustum3d.utils.CubeFactory;
 import frustum3d.utils.Referentiel;
+
 
 
 public class Main extends JFrame{
@@ -30,7 +29,7 @@ public class Main extends JFrame{
         int height = rectangle.height;
 
         JFrame frame = new JFrame("Lines");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
         frame.setSize(width,height);
         frame.setLocation(0,0);
 
@@ -48,22 +47,23 @@ public class Main extends JFrame{
         CameraMovementManager movementListener = new CameraMovementManager(camera);
         movementListener.driveCamera();
 
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
         
-        Referentiel ref = new Referentiel(width/2,height/2);
+        Referentiel ref = new Referentiel((double) width /2, (double) height /2);
         double cubeSize = 1000;
         CubeFactory cubeFactory = new CubeFactory(cubeSize);
 
         List<Mesh> forms = new ArrayList<>();
         for (int i = -5; i < 5; i++) {
             for (int j = -5; j < 5; j++) {
-                forms.add((Mesh) cubeFactory.buildAt(new Vertex(2*i*cubeSize,0,2*j*cubeSize)));
+                forms.add(cubeFactory.buildAt(new Vertex(2*i*cubeSize,0,2*j*cubeSize)));
             }
         }
         // forms.add(cubeFactory.buildAt(new Point3D(0,0,0)));
         
 
         RendererPanel renderer = new RendererPanel(ref, forms, camera, width, height);
+        renderer.setBackground(Color.LIGHT_GRAY);
         renderer.addKeyListener(movementListener);
         renderer.addMouseMotionListener(movementListener);
         renderer.addMouseListener(movementListener);
@@ -77,17 +77,15 @@ public class Main extends JFrame{
         cb.addActionListener(e -> {
             RenderingType selected = RenderingType.valueOf((String) cb.getSelectedItem()); // get the selected item
             switch (selected) {
-                case RenderingType.WIREFRAME -> {
-                    renderer.setRenderingType(RenderingType.WIREFRAME);
-                }
-                case RenderingType.FULLMESH -> {
-                    renderer.setRenderingType(RenderingType.FULLMESH);
-                }
+                case RenderingType.WIREFRAME -> renderer.setRenderingType(RenderingType.WIREFRAME);
+                case RenderingType.FULLMESH -> renderer.setRenderingType(RenderingType.FULLMESH);
+
             }
         });
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, configPanel, renderer);
         splitPane.setDividerLocation(300); // initial width of the config panel
+        splitPane.setBackground(Color.GRAY);
         frame.getContentPane().add(splitPane);
 
         frame.setVisible(true);

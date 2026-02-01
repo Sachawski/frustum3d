@@ -1,4 +1,4 @@
-package frustum3d.core;
+package frustum3d.core.view;
 
 public class Vertex {
 
@@ -22,18 +22,6 @@ public class Vertex {
 
     public double getZ() {
         return z;
-    }
-
-    public void setX(double newX) {
-        this.x = newX;
-    }
-
-    public void setY(double newY) {
-        this.y = newY;
-    }
-
-    public void setZ(double newZ) {
-        this.z = newZ;
     }
 
     public Vertex add(Vertex point) {

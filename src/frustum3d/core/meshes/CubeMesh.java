@@ -1,15 +1,13 @@
-package frustum3d.core;
+package frustum3d.core.meshes;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import frustum3d.core.view.Vertex;
+
+import java.util.*;
 
 public class CubeMesh implements Mesh {
 
+    private final List<Vertex> vertices;
     public static final int POINT_NUMBER = 8;
-    private List<Vertex> vertices;
     private static final int[][] FACES = {
         {0, 3, 2, 1},  // Back face
         {4, 5, 6 ,7},  // Front face
@@ -32,23 +30,23 @@ public class CubeMesh implements Mesh {
         {1, 5},
         {6, 2}
     };
-    private static final Map<Integer, int[]> EDGES_FACES_MAP = new HashMap<>() {{
-        put(0,new int[] {0,2});
-        put(1,new int[] {0,4});
-        put(2,new int[] {0,3});
-        put(3,new int[] {0,5});
-        put(4,new int[] {1,5});
-        put(5,new int[] {1,3});
-        put(6,new int[] {1,4});
-        put(7,new int[] {1,2});
-        put(8,new int[] {2,5});
-        put(9,new int[] {2,4});
-        put(10,new int[] {3,5});
-        put(11,new int[] {3,4});
-    }};
+    private static final Map<Integer, int[]> EDGES_FACES_MAP = Map.ofEntries(
+            Map.entry(0, new int[]{0, 2}),
+            Map.entry(1, new int[]{0, 4}),
+            Map.entry(2, new int[]{0, 3}),
+            Map.entry(3, new int[]{0, 5}),
+            Map.entry(4, new int[]{1, 5}),
+            Map.entry(5, new int[]{1, 3}),
+            Map.entry(6, new int[]{1, 4}),
+            Map.entry(7, new int[]{1, 2}),
+            Map.entry(8, new int[]{2, 5}),
+            Map.entry(9, new int[]{2, 4}),
+            Map.entry(10, new int[]{3, 5}),
+            Map.entry(11, new int[]{3, 4})
+    );
 
     public CubeMesh(List<Vertex> points) throws Exception {
-        if (points.size() > POINT_NUMBER) {
+        if (points.size() == POINT_NUMBER) {
             this.vertices = points;
         }
         else {
@@ -98,22 +96,6 @@ public class CubeMesh implements Mesh {
 
     public int[] getFaceVertices(int faceIndex) {
         return FACES[faceIndex];
-    }
-
-    public List<Polygon> getFaces() {
-        List<Polygon> faces = new ArrayList<Polygon>();
-        for (int[] facesDef : FACES) {
-            List<Vertex> face = new ArrayList<>(
-                Arrays.asList(new Vertex[] {
-                    vertices.get(facesDef[0]),
-                    vertices.get(facesDef[1]),
-                    vertices.get(facesDef[2]),
-                    vertices.get(facesDef[3]),
-                })
-            );
-            faces.add(new Polygon(face));
-        }
-        return faces;
     }
 
 }

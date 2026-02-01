@@ -1,9 +1,18 @@
 package frustum3d.renderer;
 
-import frustum3d.core.*;
+import frustum3d.core.clip.ClipLine;
+import frustum3d.core.clip.ClipVertex;
+import frustum3d.core.meshes.CubeMesh;
+import frustum3d.core.meshes.Mesh;
+import frustum3d.core.screen.*;
+import frustum3d.core.view.Line;
+import frustum3d.core.view.Triangle3D;
+import frustum3d.core.view.Vertex;
 import frustum3d.scene.Camera;
 import frustum3d.utils.Matrix;
 import frustum3d.utils.Referentiel;
+
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,16 +51,8 @@ public class RenderingEngine {
                     int[] facesForEdge = cube.getEdgesFacesMap().get(edgeIndex);
                     
                     boolean edgeVisible = false;
-                    for (int faceIndex : facesForEdge) {
-                        int[] faceVertices = cube.getFaceVertices(faceIndex);
-                        if (camera.isFaceFrontFacing(faceVertices, view.toArray(new Vertex[0]))) {
-                            edgeVisible = true;
-                            break; // At least one face is front-facing, render edge
-                        }
-                    }
-                    if (!edgeVisible) {
-                        continue; // Skip rendering back-face-only edges
-                    } 
+                    if (!isEdgeVisible(cube, edgeVisible, facesForEdge, view))
+                        continue;
 
                     ClipVertex p1 = projectionMatrix.multiplyClip(view.get(edgeFirstPointIndex));
                     ClipVertex p2 = projectionMatrix.multiplyClip(view.get(edgeSecondPointIndex));
@@ -65,138 +66,122 @@ public class RenderingEngine {
 
         List<Line> vertexLines = camera.toNDCSpace(clipLines);
 
-        return vertexLines.stream().map( vLine -> getScreenLine(vLine.from(), vLine.to())).toList();
+        return vertexLines.stream().map( vLine -> getEdgeScreenLine(vLine.from(), vLine.to())).toList();
     }
-
-    private List<Vertex> computeViewCoordinates(Matrix matrix, List<Vertex> vertices) {
-        return vertices.stream().map(matrix::multiply).toList();
-    }
-
 
     public List<ScreenLine> fullMeshRenderingOptimized(List<Mesh> meshes) {
-        List<ClipLine> clipLines = new ArrayList<>();
+        List<ScreenLine> drawLines = new ArrayList<>();
         Matrix viewMatrix = camera.createViewMatrix();
         Matrix projectionMatrix = camera.createProjectionMatrix();
 
         for (Mesh mesh : meshes) {
             if (mesh instanceof CubeMesh cube) {
-                List<Triangle> triangles = new ArrayList<>();
+                List<Triangle3D> triangle3DS = new ArrayList<>();
                 int[][] faces = cube.getFacesDef();
 
                 for (int[] face : faces) {
-                    triangles.add(new Triangle(cube.getVertices().get(face[0]),
+                    triangle3DS.add(new Triangle3D(cube.getVertices().get(face[0]),
                             cube.getVertices().get(face[2]),
                             cube.getVertices().get(face[3])));
-                    triangles.add(new Triangle(cube.getVertices().get(face[0]),
+                    triangle3DS.add(new Triangle3D(cube.getVertices().get(face[0]),
                             cube.getVertices().get(face[1]),
                             cube.getVertices().get(face[2])));
                 }
 
-                triangles.forEach(t -> {
+                triangle3DS.forEach(t -> {
                     t.setP1(viewMatrix.multiply(t.getP1()));
                     t.setP2(viewMatrix.multiply(t.getP2()));
                     t.setP3(viewMatrix.multiply(t.getP3()));
                 });
 
-                for (Triangle triangle : triangles) {
+                for (Triangle3D triangle3D : triangle3DS) {
                     Vertex[] trianglesPoint = new Vertex[] {
-                            triangle.getP1(),
-                            triangle.getP2(),
-                            triangle.getP3()
+                            triangle3D.getP1(),
+                            triangle3D.getP2(),
+                            triangle3D.getP3()
                     };
 
                     if (!camera.isFaceFrontFacing(new int[] {0,1,2}, trianglesPoint)) {
                         continue;
                     }
 
-                    ClipVertex p1 = projectionMatrix.multiplyClip(triangle.getP1());
-                    ClipVertex p2 = projectionMatrix.multiplyClip(triangle.getP2());
-                    ClipVertex p3 = projectionMatrix.multiplyClip(triangle.getP3());
 
+                    List<ClipLine> clippedVertices = camera.getClippedVertices(List.of(
+                        projectionMatrix.multiplyClip(triangle3D.getP1()),
+                        projectionMatrix.multiplyClip(triangle3D.getP2()),
+                        projectionMatrix.multiplyClip(triangle3D.getP3())
+                    ));
 
-                    clipLines.add(new ClipLine(p1, p2));
-                    clipLines.add(new ClipLine(p2, p3));
-                    clipLines.add(new ClipLine(p3, p1));
+                    //List<Triangle3D> triangles = triangulate(clippedVertices);
 
+                    List<Line> vertexLines = camera.toNDCSpace(clippedVertices);
+                    List<ScreenLine> edgeLines = vertexLines.stream().map( vLine -> getEdgeScreenLine(vLine.from(), vLine.to())).toList();
+
+                    List<ScreenLine> fillerLines = getFillerLines(edgeLines);
+
+                    drawLines.addAll(fillerLines);
+                    drawLines.addAll(edgeLines);
                 }
             }
         }
-        clipLines = camera.getClippedLineOptimized(clipLines);
-
-        List<Line> vertexLines = camera.toNDCSpace(clipLines);
-
-        return vertexLines.stream().map( vLine -> getScreenLine(vLine.from(), vLine.to())).toList();
+        return drawLines;
     }
 
+    private List<ScreenLine> getFillerLines(List<ScreenLine> edges) {
+        List<ScreenLine> fillerLines = new ArrayList<>();
+//        int maxY = edges.stream().reduce(edges.getFirst(), (screenLine1, screenLine2) -> {
+//            if (screenLine1.getMaxY() > screenLine2.getMaxY()) {
+//                return screenLine1;
+//            }
+//            return screenLine2;
+//        }).getMaxY();
+//        edges.stream;
+//
+//        dxdy01 = (x1 - x0) / (y1 - y0)   // v0 → v1
+//        dxdy12 = (x2 - x1) / (y2 - y1)   // v1 → v2
+//        dxdy02 = (x2 - x0) / (y2 - y0)
+//        for (int y = 0; y < maxY; y++) {
+//
+//        }
+//
+        return fillerLines;
+    }
 
-    // public List<Line> fullMeshRendering(List<Mesh> forms) {
-    //     List<Line> lines = new ArrayList<>();
-    //     List<Triangle> triangles = new ArrayList<>();
-    //     Matrix viewMatrix = camera.createViewMatrix();
-    //     Matrix projectionMatrix = camera.createProjectionMatrix();
-    //     Matrix mvpMatrix = camera.createMVPMatrix();
-
-    //     for (Mesh form : forms) {
-    //         if (form instanceof CubeMesh cube) {
-                
-    //             int[][] faces = cube.getFacesDef();
-
-    //             for (int[] face : faces) {
-    //                 triangles.add(new Triangle(cube.getVertices().get(face[0]),
-    //                                             cube.getVertices().get(face[2]),
-    //                                             cube.getVertices().get(face[3])));
-    //                 triangles.add(new Triangle(cube.getVertices().get(face[0]),
-    //                                             cube.getVertices().get(face[1]),
-    //                                             cube.getVertices().get(face[2])));
-    //             }
-
-    //             triangles.stream().forEach(t -> {
-    //                 t.setP1(mvpMatrix.multiply(t.getP1()));
-    //                 t.setP2(mvpMatrix.multiply(t.getP2()));
-    //                 t.setP3(mvpMatrix.multiply(t.getP3()));
-    //             });
-
-    //             for (Triangle triangle : triangles) {
-    //                 Vertex[] trianglesPoint = new Vertex[] {
-    //                     triangle.getP1(),
-    //                     triangle.getP2(),
-    //                     triangle.getP3()
-    //                 };
-
-    //                 if (!camera.isFaceFrontFacing(trianglesPoint)) {
-    //                     continue;
-    //                 }
-
-    //                 Vertex p1 = triangle.getP1();
-    //                 Vertex p2 = triangle.getP2();
-    //                 Vertex p3 = triangle.getP3();
-
-    //                 lines.add(getClippedLine(p1, p2));
-    //                 lines.add(getClippedLine(p2, p3));
-    //                 lines.add(getClippedLine(p3, p1));
-    //             }
-    //         }
-    //     }
-    //     return lines;
-    // }
+//    private List<ScreenLine> getFillerLines(int y, List<ScreenLine> screenLines) {
+//
+//    }
 
 
-        
-    private ScreenLine getScreenLine(Vertex p1, Vertex p2) {
+    private ScreenLine getEdgeScreenLine(Vertex p1, Vertex p2) {
         int screenX1 = (int) ref.x() + (int)(p1.getX() * (width / 2));
         int screenY1 = (int) ref.y() - (int)(p1.getY() * (height / 2));
         int screenX2 = (int) ref.x() + (int)(p2.getX() * (width / 2));
         int screenY2 = (int) ref.y() - (int)(p2.getY() * (height / 2));
         return new ScreenLine(
-            new Pixel(screenX1, screenY1),
-            new Pixel(screenX2, screenY2)
+            new Pixel(screenX1, screenY1, p1.getZ()),
+            new Pixel(screenX2, screenY2, p2.getZ()),
+            Color.BLACK
         );
     }
 
-    // private List<Triangle> triangulate4VertexPolygon(Polygon polygon) {
-    //     List<Triangle> result = new ArrayList<>();
-    //     result.add(new Triangle(polygon.getVertices().get(0), polygon.getVertices().get(2), polygon.getVertices().get(3)));
-    //     result.add(new Triangle(polygon.getVertices().get(0), polygon.getVertices().get(1), polygon.getVertices().get(2)));
-    //     return result;
-    // }
+    private boolean isEdgeVisible(CubeMesh cube, boolean edgeVisible, int[] facesForEdge, List<Vertex> view) {
+        edgeVisible = backfaceCulling(cube, facesForEdge, view, edgeVisible);
+        return edgeVisible;
+    }
+
+    private boolean backfaceCulling(CubeMesh cube, int[] facesForEdge, List<Vertex> view, boolean edgeVisible) {
+        for (int faceIndex : facesForEdge) {
+            int[] faceVertices = cube.getFaceVertices(faceIndex);
+            if (camera.isFaceFrontFacing(faceVertices, view.toArray(new Vertex[0]))) {
+                edgeVisible = true;
+                break; // At least one face is front-facing, render edge
+            }
+        }
+        return edgeVisible;
+    }
+
+    private List<Vertex> computeViewCoordinates(Matrix matrix, List<Vertex> vertices) {
+        return vertices.stream().map(matrix::multiply).toList();
+    }
+
 }
