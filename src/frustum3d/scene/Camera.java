@@ -1,13 +1,14 @@
 package frustum3d.scene;
 
 import frustum3d.core.clip.ClipLine;
+import frustum3d.core.clip.ClipTriangle;
 import frustum3d.core.clip.ClipVertex;
 import frustum3d.core.view.Line;
+import frustum3d.core.view.Triangle3D;
 import frustum3d.core.view.Vertex;
 import frustum3d.utils.Matrix;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 
 public class Camera {
 
@@ -200,7 +201,7 @@ public class Camera {
         return result;
     }
 
-    public List<ClipLine> getClippedVertices(List<ClipVertex> vertices) {
+    public List<ClipVertex> getClippedVertices(List<ClipVertex> vertices) {
         ClipVertex curr;
         ClipVertex prev;
         for (double[] plane : planes) {
@@ -229,8 +230,9 @@ public class Camera {
         if (!vertices.isEmpty()) {
             vertices.add(vertices.getFirst());
         }
-        List<ClipVertex> finalVertices = vertices;
-        return IntStream.range(0, vertices.size()-1).mapToObj(i -> new ClipLine(finalVertices.get(i), finalVertices.get(i+1))).toList();
+        return vertices;
+//        List<ClipVertex> finalVertices = vertices;
+//        return IntStream.range(0, vertices.size()-1).mapToObj(i -> new ClipLine(finalVertices.get(i), finalVertices.get(i+1))).toList();
     }
 
     private boolean inside(double[] plane, ClipVertex vertex) {
@@ -252,7 +254,7 @@ public class Camera {
         return f0 / (f0 - f1);
     }
 
-    public List<Line> toNDCSpace(List<ClipLine> clippedLines) {
+    public List<Line> toLineNDCSpace(List<ClipLine> clippedLines) {
         return clippedLines.stream().map( clippedLine -> {
             double fromX = clippedLine.from().getX();
             double fromY = clippedLine.from().getY();
@@ -264,6 +266,17 @@ public class Camera {
             double toW = clippedLine.to().getW();
             return new Line(new Vertex(fromX/fromW, fromY/fromW, fromZ/fromW), new Vertex(toX/toW, toY/toW, toZ/toW));
         }).toList();
+    }
+
+    public Triangle3D toVertexNDCSpace(ClipTriangle triangle) {
+        ClipVertex a = triangle.a();
+        ClipVertex b = triangle.b();
+        ClipVertex c = triangle.c();
+        return new Triangle3D(
+            new Vertex(a.getX()/a.getW(), a.getY()/a.getW(), a.getZ()/a.getW()),
+            new Vertex(b.getX()/b.getW(), b.getY()/b.getW(), b.getZ()/b.getW()),
+            new Vertex(c.getX()/c.getW(), c.getY()/c.getW(), c.getZ()/c.getW())
+        );
     }
     
     private Vertex forwardVector(double radianYaw, double radianPitch) {

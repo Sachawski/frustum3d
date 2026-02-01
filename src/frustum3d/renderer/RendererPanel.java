@@ -46,8 +46,8 @@ public class RendererPanel extends JPanel {
         for (ScreenLine line : lines) {
             g.setColor(line.color());
             g.drawLine(
-                line.pixel1().x(), 
-                line.pixel1().y(), 
+                line.pixel1().x(),
+                line.pixel1().y(),
                 line.pixel2().x(),
                 line.pixel2().y()
             );

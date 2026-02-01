@@ -1,6 +1,7 @@
 package frustum3d.renderer;
 
 import frustum3d.core.clip.ClipLine;
+import frustum3d.core.clip.ClipTriangle;
 import frustum3d.core.clip.ClipVertex;
 import frustum3d.core.meshes.CubeMesh;
 import frustum3d.core.meshes.Mesh;
@@ -12,9 +13,11 @@ import frustum3d.scene.Camera;
 import frustum3d.utils.Matrix;
 import frustum3d.utils.Referentiel;
 
+import javax.sound.sampled.Clip;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class RenderingEngine {
     
@@ -49,7 +52,7 @@ public class RenderingEngine {
                     int edgeFirstPointIndex = edges[edgeIndex][0];
                     int edgeSecondPointIndex = edges[edgeIndex][1];
                     int[] facesForEdge = cube.getEdgesFacesMap().get(edgeIndex);
-                    
+
                     boolean edgeVisible = false;
                     if (!isEdgeVisible(cube, edgeVisible, facesForEdge, view))
                         continue;
@@ -57,14 +60,14 @@ public class RenderingEngine {
                     ClipVertex p1 = projectionMatrix.multiplyClip(view.get(edgeFirstPointIndex));
                     ClipVertex p2 = projectionMatrix.multiplyClip(view.get(edgeSecondPointIndex));
 
-                    clipLines.add(new ClipLine(p1, p2));       
+                    clipLines.add(new ClipLine(p1, p2));
                 }
 
             }
         }
         clipLines = camera.getClippedLineOptimized(clipLines);
 
-        List<Line> vertexLines = camera.toNDCSpace(clipLines);
+        List<Line> vertexLines = camera.toLineNDCSpace(clipLines);
 
         return vertexLines.stream().map( vLine -> getEdgeScreenLine(vLine.from(), vLine.to())).toList();
     }
@@ -77,6 +80,8 @@ public class RenderingEngine {
         for (Mesh mesh : meshes) {
             if (mesh instanceof CubeMesh cube) {
                 List<Triangle3D> triangle3DS = new ArrayList<>();
+                List<ClipTriangle> clippedTriangles = new ArrayList<>();
+
                 int[][] faces = cube.getFacesDef();
 
                 for (int[] face : faces) {
@@ -106,51 +111,42 @@ public class RenderingEngine {
                     }
 
 
-                    List<ClipLine> clippedVertices = camera.getClippedVertices(List.of(
+                    List<ClipVertex> clippedVertices = camera.getClippedVertices(List.of(
                         projectionMatrix.multiplyClip(triangle3D.getP1()),
                         projectionMatrix.multiplyClip(triangle3D.getP2()),
                         projectionMatrix.multiplyClip(triangle3D.getP3())
                     ));
 
-                    //List<Triangle3D> triangles = triangulate(clippedVertices);
+                    clippedTriangles.addAll(fanTriangulation(clippedVertices));
+                }
 
-                    List<Line> vertexLines = camera.toNDCSpace(clippedVertices);
-                    List<ScreenLine> edgeLines = vertexLines.stream().map( vLine -> getEdgeScreenLine(vLine.from(), vLine.to())).toList();
+                for (ClipTriangle triangle : clippedTriangles) {
+                    Triangle3D triangle3D = camera.toVertexNDCSpace(triangle);
 
-                    List<ScreenLine> fillerLines = getFillerLines(edgeLines);
+                    Triangle2D screenTriangle = triangleToScreen(triangle3D);
 
-                    drawLines.addAll(fillerLines);
+                    List<ScreenLine> edgeLines = List.of(
+                        new ScreenLine(screenTriangle.getP1(), screenTriangle.getP2(), Color.BLACK),
+                        new ScreenLine(screenTriangle.getP2(), screenTriangle.getP3(), Color.BLACK),
+                        new ScreenLine(screenTriangle.getP3(), screenTriangle.getP1(), Color.BLACK)
+                    );
+
+
                     drawLines.addAll(edgeLines);
                 }
+
             }
         }
         return drawLines;
     }
 
-    private List<ScreenLine> getFillerLines(List<ScreenLine> edges) {
-        List<ScreenLine> fillerLines = new ArrayList<>();
-//        int maxY = edges.stream().reduce(edges.getFirst(), (screenLine1, screenLine2) -> {
-//            if (screenLine1.getMaxY() > screenLine2.getMaxY()) {
-//                return screenLine1;
-//            }
-//            return screenLine2;
-//        }).getMaxY();
-//        edges.stream;
-//
-//        dxdy01 = (x1 - x0) / (y1 - y0)   // v0 → v1
-//        dxdy12 = (x2 - x1) / (y2 - y1)   // v1 → v2
-//        dxdy02 = (x2 - x0) / (y2 - y0)
-//        for (int y = 0; y < maxY; y++) {
-//
-//        }
-//
-        return fillerLines;
+    private List<ClipTriangle> fanTriangulation(List<ClipVertex> polygon) {
+        List<ClipTriangle> triangles = new ArrayList<>();
+        for (int ind = 1; ind < polygon.size()-2; ind++) {
+            triangles.add(new ClipTriangle(polygon.getFirst(), polygon.get(ind), polygon.get(ind+1)));
+        }
+        return triangles;
     }
-
-//    private List<ScreenLine> getFillerLines(int y, List<ScreenLine> screenLines) {
-//
-//    }
-
 
     private ScreenLine getEdgeScreenLine(Vertex p1, Vertex p2) {
         int screenX1 = (int) ref.x() + (int)(p1.getX() * (width / 2));
@@ -163,6 +159,8 @@ public class RenderingEngine {
             Color.BLACK
         );
     }
+
+
 
     private boolean isEdgeVisible(CubeMesh cube, boolean edgeVisible, int[] facesForEdge, List<Vertex> view) {
         edgeVisible = backfaceCulling(cube, facesForEdge, view, edgeVisible);
@@ -184,4 +182,17 @@ public class RenderingEngine {
         return vertices.stream().map(matrix::multiply).toList();
     }
 
+    private Triangle2D triangleToScreen(Triangle3D triangle) {
+        return new Triangle2D(
+                vertexToScreen(triangle.getP1()),
+                vertexToScreen(triangle.getP2()),
+                vertexToScreen(triangle.getP3())
+        );
+    }
+
+    private Pixel vertexToScreen(Vertex vertex) {
+        int screenX1 = (int) ref.x() + (int)(vertex.getX() * (width / 2));
+        int screenY1 = (int) ref.y() - (int)(vertex.getY() * (height / 2));
+        return new Pixel(screenX1, screenY1, vertex.getZ());
+    }
 }
