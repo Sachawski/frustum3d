@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import javax.swing.JPanel;
 
@@ -57,30 +58,13 @@ public class RendererPanel extends JPanel {
     }
 
     private void wireFrameRendering(Graphics g) {
-        List<ScreenLine> lines = renderingEngine.wireFrameRendering(forms);
-
-        for (ScreenLine line : lines) {
-            g.setColor(line.color());
-            g.drawLine(
-                line.pixel1().x(),
-                line.pixel1().y(),
-                line.pixel2().x(),
-                line.pixel2().y()
-            );
-        }
+        BufferedImage lines = renderingEngine.wireFrameRendering(forms);
+        g.drawImage(lines, 0,0, this);
     }
 
      private void fullMeshRendering(Graphics g) {
-         List<ScreenLine> lines = renderingEngine.fullMeshRenderingOptimized(forms);
-         g.setColor(Color.BLACK);
-         for (ScreenLine line : lines) {
-             g.drawLine(
-                 line.pixel1().x(),
-                 line.pixel1().y(),
-                 line.pixel2().x(),
-                 line.pixel2().y()
-             );
-         }
+         BufferedImage lines = renderingEngine.fullMeshRenderingOptimized(forms);
+         g.drawImage(lines, 0,0, this);
      }
 
 

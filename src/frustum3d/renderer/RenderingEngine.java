@@ -14,8 +14,11 @@ import frustum3d.utils.Matrix;
 import frustum3d.utils.Referentiel;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class RenderingEngine {
     
@@ -43,8 +46,9 @@ public class RenderingEngine {
         this.ref = ref;
     }
 
-    public List<ScreenLine> wireFrameRendering(List<Mesh> meshes) {
+    public BufferedImage wireFrameRendering(List<Mesh> meshes) {
         List<ClipLine> clipLines = new ArrayList<>();
+        BufferedImage bufferedImage = new BufferedImage((int)width,(int)height,BufferedImage.TYPE_INT_ARGB);
         Matrix viewMatrix = camera.createViewMatrix();
         Matrix projectionMatrix = camera.createProjectionMatrix();
 
@@ -76,11 +80,26 @@ public class RenderingEngine {
 
         List<Line> vertexLines = camera.toLineNDCSpace(clipLines);
 
-        return vertexLines.stream().map( vLine -> getEdgeScreenLine(vLine.from(), vLine.to())).toList();
+        List<ScreenLine> screenLines = vertexLines.stream().map( vLine -> getEdgeScreenLine(vLine.from(), vLine.to())).toList();
+        System.out.println(screenLines.size());
+
+        Graphics2D g2 = bufferedImage.createGraphics();
+        g2.setColor(Color.BLACK);
+        for (ScreenLine line : screenLines) {
+            g2.drawLine(
+                    line.pixel1().x(),
+                    line.pixel1().y(),
+                    line.pixel2().x(),
+                    line.pixel2().y()
+            );
+        }
+        g2.dispose();
+        return bufferedImage;
     }
 
-    public List<ScreenLine> fullMeshRenderingOptimized(List<Mesh> meshes) {
-        List<ScreenLine> drawLines = new ArrayList<>();
+    public BufferedImage fullMeshRenderingOptimized(List<Mesh> meshes) {
+        BufferedImage bufferedImage = new BufferedImage((int)width,(int)height,BufferedImage.TYPE_INT_ARGB);
+        int nbOfPolygon = 0;
         Matrix viewMatrix = camera.createViewMatrix();
         Matrix projectionMatrix = camera.createProjectionMatrix();
 
@@ -130,21 +149,47 @@ public class RenderingEngine {
                 for (ClipTriangle triangle : clippedTriangles) {
                     Triangle3D triangle3D = camera.toVertexNDCSpace(triangle);
 
-                    Triangle2D screenTriangle = triangleToScreen(triangle3D);
+                    Triangle2D screenTriangle = triangleToScreenSorted(triangle3D);
+
+                    List<ScreenLine> filling = scanline(screenTriangle);
 
                     List<ScreenLine> edgeLines = List.of(
+                        new ScreenLine(screenTriangle.getP0(), screenTriangle.getP1(), Color.BLACK),
                         new ScreenLine(screenTriangle.getP1(), screenTriangle.getP2(), Color.BLACK),
-                        new ScreenLine(screenTriangle.getP2(), screenTriangle.getP3(), Color.BLACK),
-                        new ScreenLine(screenTriangle.getP3(), screenTriangle.getP1(), Color.BLACK)
+                        new ScreenLine(screenTriangle.getP2(), screenTriangle.getP0(), Color.BLACK)
                     );
 
 
-                    drawLines.addAll(edgeLines);
+                    Graphics2D g2 = bufferedImage.createGraphics();
+
+                    for (ScreenLine line : filling) {
+                        g2.setColor(line.color());
+
+                        g2.drawLine(
+                                line.pixel1().x(),
+                                line.pixel1().y(),
+                                line.pixel2().x(),
+                                line.pixel2().y()
+                        );
+                    }
+                    for (ScreenLine line : edgeLines) {
+                        g2.setColor(line.color());
+                        g2.drawLine(
+                                line.pixel1().x(),
+                                line.pixel1().y(),
+                                line.pixel2().x(),
+                                line.pixel2().y()
+                        );
+                    }
+                    g2.dispose();
+                    nbOfPolygon++;
+
                 }
 
             }
         }
-        return drawLines;
+        System.out.println(nbOfPolygon);
+        return bufferedImage;
     }
 
     private List<ClipTriangle> fanTriangulation(List<ClipVertex> polygon) {
@@ -167,7 +212,61 @@ public class RenderingEngine {
         );
     }
 
+    private List<ScreenLine> scanline(Triangle2D triangle) {
+        int x0 = triangle.getP0().x();
+        int y0 = triangle.getP0().y();
+        int x1 = triangle.getP1().x();
+        int y1 = triangle.getP1().y();
+        int x2 = triangle.getP2().x();
+        int y2 = triangle.getP2().y();
+        int mx = (int)((double)((x2 - x0) * (y1 - y0)) / (double)(y2 - y0)) + x0;
+        int my = y1;
+        List<ScreenLine> topSpans = topTriangle(x0, y0, x1, y1, mx, my);
+        List<ScreenLine> bottomSpans = bottomTriangle(x1, y1, mx, my, x2, y2);
+        topSpans.addAll(bottomSpans);
+        return topSpans;
+    }
 
+    private List<ScreenLine> topTriangle(int x0, int y0, int x1, int y1, int x2, int y2) {
+        List<ScreenLine> spans = new ArrayList<>();
+        double invSlope1 = (double)(x1 - x0) / (double)(y1 - y0);
+        double invSlope2 = (double)(x2 - x0) / (double)(y2 - y0);
+
+        double xStart = x0;
+        double xEnd = x0;
+
+        for (int y = y0; y < y2; y++) {
+            spans.add(new ScreenLine(
+                new Pixel((int)xStart,y, 0),
+                new Pixel((int)xEnd,y, 0),
+                Color.RED
+            ));
+
+            xStart +=  invSlope1;
+            xEnd += invSlope2;
+        }
+        return spans;
+    }
+
+    private List<ScreenLine> bottomTriangle(int x0, int y0, int x1, int y1, int x2, int y2) {
+        List<ScreenLine> spans = new ArrayList<>();
+        double invSlope1 = (double)(x2 - x0) / (double)(y2 - y0);
+        double invSlope2 = (double)(x2 - x1) / (double)(y2 - y1);
+        double xStart = x2;
+        double xEnd = x2;
+
+        for (int y = y2; y >= y1; y--) {
+            spans.add(new ScreenLine(
+                    new Pixel((int)xStart,y, 0),
+                    new Pixel((int)xEnd,y, 0),
+                    Color.RED
+            ));
+
+            xStart -=  invSlope1;
+            xEnd -= invSlope2;
+        }
+        return spans;
+    }
 
     private boolean isEdgeVisible(CubeMesh cube, boolean edgeVisible, int[] facesForEdge, List<Vertex> view) {
         edgeVisible = backfaceCulling(cube, facesForEdge, view, edgeVisible);
@@ -189,11 +288,15 @@ public class RenderingEngine {
         return vertices.stream().map(matrix::multiply).toList();
     }
 
-    private Triangle2D triangleToScreen(Triangle3D triangle) {
+    private Triangle2D triangleToScreenSorted(Triangle3D triangle) {
+        List<Pixel> sortedPixels = Stream.of(triangle.getP1(), triangle.getP2(), triangle.getP3())
+                .map(this::vertexToScreen)
+                .sorted((a,b) -> (Integer.compare(a.y(), b.y())))
+                .toList();
         return new Triangle2D(
-                vertexToScreen(triangle.getP1()),
-                vertexToScreen(triangle.getP2()),
-                vertexToScreen(triangle.getP3())
+                sortedPixels.getFirst(),
+                sortedPixels.get(1),
+                sortedPixels.getLast()
         );
     }
 

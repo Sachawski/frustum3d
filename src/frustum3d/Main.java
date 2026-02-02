@@ -54,12 +54,15 @@ public class Main extends JFrame{
         CubeFactory cubeFactory = new CubeFactory(cubeSize);
 
         List<Mesh> forms = new ArrayList<>();
-        for (int i = -5; i < 5; i++) {
-            for (int j = -5; j < 5; j++) {
-                forms.add(cubeFactory.buildAt(new Vertex(2*i*cubeSize,0,2*j*cubeSize)));
+        for (int i = -10; i < 10; i++) {
+            for (int j = -10; j < 10; j++) {
+//                for(int k = -10; k < 10; k++) {
+//                    forms.add(cubeFactory.buildAt(new Vertex(2 * i * cubeSize, 2 * j * cubeSize, 2 * k * cubeSize)));
+//                }
+                forms.add(cubeFactory.buildAt(new Vertex(i * cubeSize, 0, j * cubeSize)));
             }
         }
-        // forms.add(cubeFactory.buildAt(new Point3D(0,0,0)));
+         // forms.add(cubeFactory.buildAt(new Vertex(0,0,0)));
         
 
         RendererPanel renderer = new RendererPanel(ref, forms, camera, width, height);
