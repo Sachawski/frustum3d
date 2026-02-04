@@ -25,8 +25,6 @@ import java.util.stream.Stream;
 public class RenderingEngine {
     
     private Referentiel ref;
-    private double viewPortW;
-    private double viewPortH;
     private double width;
     private double height;
     private final Camera camera;
@@ -36,16 +34,15 @@ public class RenderingEngine {
                             double height,
                             Camera camera ){
         this.ref = ref;
-        this.viewPortH = height;
-        this.viewPortW = width;
+        this.height = height;
         this.width = width;
         this.height = height;
         this.camera = camera;
     }
 
     public void resize(int width, int height){
-        this.viewPortW = width;
-        this.viewPortH= height;
+        this.width = width;
+        this.height = height;
     }
 
     public void setRef(Referentiel ref) {
@@ -211,10 +208,10 @@ public class RenderingEngine {
     }
 
     private ScreenLine getEdgeScreenLine(Vertex p1, Vertex p2) {
-        int screenX1 = (int) ref.x() + (int)(p1.getX() * (viewPortW / 2));
-        int screenY1 = (int) ref.y() - (int)(p1.getY() * (viewPortH / 2));
-        int screenX2 = (int) ref.x() + (int)(p2.getX() * (viewPortW / 2));
-        int screenY2 = (int) ref.y() - (int)(p2.getY() * (viewPortH / 2));
+        int screenX1 = (int) ref.x() + (int)(p1.getX() * (width / 2));
+        int screenY1 = (int) ref.y() - (int)(p1.getY() * (height / 2));
+        int screenX2 = (int) ref.x() + (int)(p2.getX() * (width / 2));
+        int screenY2 = (int) ref.y() - (int)(p2.getY() * (height / 2));
         return new ScreenLine(
             new Pixel(screenX1, screenY1, p1.getZ()),
             new Pixel(screenX2, screenY2, p2.getZ()),
@@ -311,8 +308,8 @@ public class RenderingEngine {
     }
 
     private Pixel vertexToScreen(Vertex vertex) {
-        int screenX1 = (int) ref.x() + (int)(vertex.getX() * (viewPortW / 2));
-        int screenY1 = (int) ref.y() - (int)(vertex.getY() * (viewPortH / 2));
+        int screenX1 = (int) ref.x() + (int)(vertex.getX() * (width / 2));
+        int screenY1 = (int) ref.y() - (int)(vertex.getY() * (height / 2));
         return new Pixel(screenX1, screenY1, vertex.getZ());
     }
 }

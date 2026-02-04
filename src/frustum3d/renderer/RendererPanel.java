@@ -38,7 +38,7 @@ public class RendererPanel extends JPanel {
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                updateRef();
+                updateEngineRef();
             }
         });
     }
@@ -50,14 +50,11 @@ public class RendererPanel extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.setColor(Color.BLUE);
-        g.drawLine(0,(int) this.referentiel.y()-viewHeight/2, viewWidth,(int) this.referentiel.y()-viewHeight/2);
-        g.setColor(Color.CYAN);
-        g.drawLine(0,(int) this.referentiel.y()+viewHeight/2, viewWidth,(int) this.referentiel.y()+viewHeight/2);
-        g.setColor(Color.RED);
-        g.drawLine((int) this.referentiel.x()-viewWidth/2, 0,(int) this.referentiel.x()-viewWidth/2, viewHeight);
-        g.setColor(Color.GREEN);
-        g.drawLine((int) this.referentiel.x()+viewWidth/2, 0,(int) this.referentiel.x()+viewWidth/2, viewHeight);
+        g.setColor(Color.BLACK);
+        g.drawLine((int)this.referentiel.x()-viewWidth/2,(int)this.referentiel.y()-viewHeight/2,(int)this.referentiel.x()+viewWidth/2,(int)this.referentiel.y()-viewHeight/2);
+        g.drawLine((int)this.referentiel.x()-viewWidth/2,(int)this.referentiel.y()-viewHeight/2,(int)this.referentiel.x()-viewWidth/2,(int)this.referentiel.y()+viewHeight/2);
+        g.drawLine((int)this.referentiel.x()+viewWidth/2,(int)this.referentiel.y()-viewHeight/2,(int)this.referentiel.x()+viewWidth/2,(int)this.referentiel.y()+viewHeight/2);
+        g.drawLine((int)this.referentiel.x()-viewWidth/2,(int)this.referentiel.y()+viewHeight/2,(int)this.referentiel.x()+viewWidth/2,(int)this.referentiel.y()+viewHeight/2);
         switch (this.renderingType) {
             case RenderingType.FULLMESH -> fullMeshRendering(g);
             case RenderingType.WIREFRAME -> wireFrameRendering(g);
@@ -67,19 +64,20 @@ public class RendererPanel extends JPanel {
 
     private void wireFrameRendering(Graphics g) {
         BufferedImage lines = renderingEngine.wireFrameRendering(forms);
-        g.drawImage(lines, 0, 0, this);
+        g.drawImage(lines, (int)(referentiel.x() - (double)viewWidth/2), (int)(referentiel.y() - (double)viewHeight/2), this);
     }
 
      private void fullMeshRendering(Graphics g) {
          BufferedImage lines = renderingEngine.fullMeshRenderingOptimized(forms);
-         g.drawImage(lines, 0,0, this);
+         g.drawImage(lines, (int)(referentiel.x() - (double)viewWidth/2),(int)(referentiel.y() - (double)viewHeight/2), this);
      }
 
 
-     private void updateRef() {
+     private void updateEngineRef() {
          int panelW = getWidth();
          int panelH = getHeight();
-         int viewportW, viewportH;
+         int viewportW;
+         int viewportH;
          double panelAspect = (double) panelW / panelH;
          if (panelAspect > targetAspect) {
              viewportH = panelH;
@@ -95,6 +93,9 @@ public class RendererPanel extends JPanel {
          this.viewHeight = viewportH;
          this.viewWidth = viewportW;
          renderingEngine.resize(viewportW, viewportH);
-         renderingEngine.setRef(this.referentiel);
+         renderingEngine.setRef(new Referentiel(
+                 (double) viewportW/2,
+                 (double) viewportH/2
+         ));
      }
 }
