@@ -1,6 +1,7 @@
 package frustum3d.core.screen;
 
-import java.awt.*;
+
+import java.awt.Color;
 
 public record ScreenLine(Pixel pixel1, Pixel pixel2, Color color) {
 

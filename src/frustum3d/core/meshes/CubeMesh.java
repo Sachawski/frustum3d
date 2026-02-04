@@ -2,11 +2,14 @@ package frustum3d.core.meshes;
 
 import frustum3d.core.view.Vertex;
 
-import java.util.*;
+import java.awt.Color;
+import java.util.List;
+import java.util.Map;
 
 public class CubeMesh implements Mesh {
 
     private final List<Vertex> vertices;
+    private final Color color;
     public static final int POINT_NUMBER = 8;
     private static final int[][] FACES = {
         {0, 3, 2, 1},  // Back face
@@ -45,33 +48,9 @@ public class CubeMesh implements Mesh {
             Map.entry(11, new int[]{3, 4})
     );
 
-    public CubeMesh(List<Vertex> points) throws Exception {
-        if (points.size() == POINT_NUMBER) {
-            this.vertices = points;
-        }
-        else {
-            throw new Exception("Wrong polygon");
-        }
-    }
-
-    public CubeMesh(Vertex firstPoint,
-                Vertex secondPoint,
-                Vertex thirdPoint,
-                Vertex fourthPoint,
-                Vertex fifthPoint,
-                Vertex sixthPoint,
-                Vertex seventhPoint,
-                Vertex eigthPoint) {
-        List<Vertex> newPoints = new ArrayList<>();
-        newPoints.add(firstPoint);
-        newPoints.add(secondPoint);
-        newPoints.add(thirdPoint);
-        newPoints.add(fourthPoint);
-        newPoints.add(fifthPoint);
-        newPoints.add(sixthPoint);
-        newPoints.add(seventhPoint);
-        newPoints.add(eigthPoint);
-        this.vertices = newPoints;
+    public CubeMesh(List<Vertex> points, Color color) {
+        this.vertices = points;
+        this.color = color;
     }
 
     @Override
@@ -82,6 +61,11 @@ public class CubeMesh implements Mesh {
     @Override
     public int[][] getEdges() {
         return EDGES;
+    }
+
+    @Override
+    public Color getColor() {
+        return color;
     }
 
     @Override

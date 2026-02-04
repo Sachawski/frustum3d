@@ -1,14 +1,5 @@
 package frustum3d;
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.BoxLayout;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
-import javax.swing.Timer;
 import frustum3d.core.meshes.Mesh;
 import frustum3d.core.view.Vertex;
 import frustum3d.renderer.RendererPanel;
@@ -18,9 +9,16 @@ import frustum3d.scene.CameraMovementManager;
 import frustum3d.utils.CubeFactory;
 import frustum3d.utils.Referentiel;
 
+import javax.swing.*;
+import java.awt.Color;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.List;
 
 
-public class Main extends JFrame{
+
+public class Main extends JFrame {
 
     public static void main(String[] args) {
 
@@ -57,7 +55,7 @@ public class Main extends JFrame{
         for (int i = -10; i < 10; i++) {
             for (int j = -10; j < 10; j++) {
 //                for(int k = -10; k < 10; k++) {
-//                    forms.add(cubeFactory.buildAt(new Vertex(2 * i * cubeSize, 2 * j * cubeSize, 2 * k * cubeSize)));
+//                    forms.add(cubeFactory.buildAt(new Vertex(i * cubeSize, j * cubeSize, k * cubeSize)));
 //                }
                 forms.add(cubeFactory.buildAt(new Vertex(i * cubeSize, 0, j * cubeSize)));
             }

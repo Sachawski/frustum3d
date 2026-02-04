@@ -40,6 +40,10 @@ public class Camera {
         this.farPlane = 100000.0;
     }
 
+    public double getAspectRatio() {
+        return aspectRatio;
+    }
+
     public void moveWorldUp() {
         this.position = this.position.add(worldUp.scale(50));
     }

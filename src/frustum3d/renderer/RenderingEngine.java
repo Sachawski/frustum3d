@@ -5,7 +5,9 @@ import frustum3d.core.clip.ClipTriangle;
 import frustum3d.core.clip.ClipVertex;
 import frustum3d.core.meshes.CubeMesh;
 import frustum3d.core.meshes.Mesh;
-import frustum3d.core.screen.*;
+import frustum3d.core.screen.Pixel;
+import frustum3d.core.screen.ScreenLine;
+import frustum3d.core.screen.Triangle2D;
 import frustum3d.core.view.Line;
 import frustum3d.core.view.Triangle3D;
 import frustum3d.core.view.Vertex;
@@ -13,16 +15,18 @@ import frustum3d.scene.Camera;
 import frustum3d.utils.Matrix;
 import frustum3d.utils.Referentiel;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
 public class RenderingEngine {
     
     private Referentiel ref;
+    private double viewPortW;
+    private double viewPortH;
     private double width;
     private double height;
     private final Camera camera;
@@ -32,14 +36,16 @@ public class RenderingEngine {
                             double height,
                             Camera camera ){
         this.ref = ref;
+        this.viewPortH = height;
+        this.viewPortW = width;
         this.width = width;
         this.height = height;
         this.camera = camera;
     }
 
     public void resize(int width, int height){
-        this.width = width;
-        this.height = height;
+        this.viewPortW = width;
+        this.viewPortH= height;
     }
 
     public void setRef(Referentiel ref) {
@@ -80,8 +86,8 @@ public class RenderingEngine {
 
         List<Line> vertexLines = camera.toLineNDCSpace(clipLines);
 
-        List<ScreenLine> screenLines = vertexLines.stream().map( vLine -> getEdgeScreenLine(vLine.from(), vLine.to())).toList();
-        System.out.println(screenLines.size());
+        List<ScreenLine> screenLines = vertexLines.stream().map(vLine -> getEdgeScreenLine(vLine.from(), vLine.to())).toList();
+        // System.out.println(screenLines.size());
 
         Graphics2D g2 = bufferedImage.createGraphics();
         g2.setColor(Color.BLACK);
@@ -102,6 +108,8 @@ public class RenderingEngine {
         int nbOfPolygon = 0;
         Matrix viewMatrix = camera.createViewMatrix();
         Matrix projectionMatrix = camera.createProjectionMatrix();
+
+        Graphics2D g2 = bufferedImage.createGraphics();
 
         for (Mesh mesh : meshes) {
             if (mesh instanceof CubeMesh cube) {
@@ -160,10 +168,9 @@ public class RenderingEngine {
                     );
 
 
-                    Graphics2D g2 = bufferedImage.createGraphics();
 
                     for (ScreenLine line : filling) {
-                        g2.setColor(line.color());
+                        g2.setColor(cube.getColor());
 
                         g2.drawLine(
                                 line.pixel1().x(),
@@ -172,8 +179,10 @@ public class RenderingEngine {
                                 line.pixel2().y()
                         );
                     }
+                    g2.setColor(Color.BLACK);
+
                     for (ScreenLine line : edgeLines) {
-                        g2.setColor(line.color());
+
                         g2.drawLine(
                                 line.pixel1().x(),
                                 line.pixel1().y(),
@@ -181,14 +190,15 @@ public class RenderingEngine {
                                 line.pixel2().y()
                         );
                     }
-                    g2.dispose();
                     nbOfPolygon++;
 
                 }
 
             }
         }
-        System.out.println(nbOfPolygon);
+        g2.dispose();
+
+        // System.out.println(nbOfPolygon);
         return bufferedImage;
     }
 
@@ -201,10 +211,10 @@ public class RenderingEngine {
     }
 
     private ScreenLine getEdgeScreenLine(Vertex p1, Vertex p2) {
-        int screenX1 = (int) ref.x() + (int)(p1.getX() * (width / 2));
-        int screenY1 = (int) ref.y() - (int)(p1.getY() * (height / 2));
-        int screenX2 = (int) ref.x() + (int)(p2.getX() * (width / 2));
-        int screenY2 = (int) ref.y() - (int)(p2.getY() * (height / 2));
+        int screenX1 = (int) ref.x() + (int)(p1.getX() * (viewPortW / 2));
+        int screenY1 = (int) ref.y() - (int)(p1.getY() * (viewPortH / 2));
+        int screenX2 = (int) ref.x() + (int)(p2.getX() * (viewPortW / 2));
+        int screenY2 = (int) ref.y() - (int)(p2.getY() * (viewPortH / 2));
         return new ScreenLine(
             new Pixel(screenX1, screenY1, p1.getZ()),
             new Pixel(screenX2, screenY2, p2.getZ()),
@@ -301,8 +311,8 @@ public class RenderingEngine {
     }
 
     private Pixel vertexToScreen(Vertex vertex) {
-        int screenX1 = (int) ref.x() + (int)(vertex.getX() * (width / 2));
-        int screenY1 = (int) ref.y() - (int)(vertex.getY() * (height / 2));
+        int screenX1 = (int) ref.x() + (int)(vertex.getX() * (viewPortW / 2));
+        int screenY1 = (int) ref.y() - (int)(vertex.getY() * (viewPortH / 2));
         return new Pixel(screenX1, screenY1, vertex.getZ());
     }
 }

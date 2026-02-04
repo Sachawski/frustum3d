@@ -1,16 +1,16 @@
 package frustum3d.renderer;
 
 import frustum3d.core.meshes.Mesh;
-import frustum3d.core.screen.ScreenLine;
 import frustum3d.scene.Camera;
 import frustum3d.utils.Referentiel;
+
+import javax.swing.JPanel;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.util.List;
-import javax.swing.JPanel;
 
 public class RendererPanel extends JPanel {
 
@@ -18,6 +18,7 @@ public class RendererPanel extends JPanel {
     RenderingEngine renderingEngine;
     RenderingType renderingType;
     Referentiel referentiel;
+    double targetAspect = 16.0 / 9.0;
     int viewWidth;
     int viewHeight;
 
@@ -33,6 +34,7 @@ public class RendererPanel extends JPanel {
             camera
         );
         this.renderingType = RenderingType.WIREFRAME;
+        this.targetAspect = camera.getAspectRatio();
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -48,8 +50,14 @@ public class RendererPanel extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawLine(0,(int) this.referentiel.y()-viewHeight/2, getWidth(),(int) this.referentiel.y()-viewHeight/2);
-        g.drawLine(0,(int) this.referentiel.y()+viewHeight/2, getWidth(),(int) this.referentiel.y()+viewHeight/2);
+        g.setColor(Color.BLUE);
+        g.drawLine(0,(int) this.referentiel.y()-viewHeight/2, viewWidth,(int) this.referentiel.y()-viewHeight/2);
+        g.setColor(Color.CYAN);
+        g.drawLine(0,(int) this.referentiel.y()+viewHeight/2, viewWidth,(int) this.referentiel.y()+viewHeight/2);
+        g.setColor(Color.RED);
+        g.drawLine((int) this.referentiel.x()-viewWidth/2, 0,(int) this.referentiel.x()-viewWidth/2, viewHeight);
+        g.setColor(Color.GREEN);
+        g.drawLine((int) this.referentiel.x()+viewWidth/2, 0,(int) this.referentiel.x()+viewWidth/2, viewHeight);
         switch (this.renderingType) {
             case RenderingType.FULLMESH -> fullMeshRendering(g);
             case RenderingType.WIREFRAME -> wireFrameRendering(g);
@@ -59,7 +67,7 @@ public class RendererPanel extends JPanel {
 
     private void wireFrameRendering(Graphics g) {
         BufferedImage lines = renderingEngine.wireFrameRendering(forms);
-        g.drawImage(lines, 0,0, this);
+        g.drawImage(lines, 0, 0, this);
     }
 
      private void fullMeshRendering(Graphics g) {
@@ -71,22 +79,19 @@ public class RendererPanel extends JPanel {
      private void updateRef() {
          int panelW = getWidth();
          int panelH = getHeight();
-         double targetAspect = 16.0 / 9.0;
-         int viewportW, viewportH, offsetX, offsetY;
+         int viewportW, viewportH;
          double panelAspect = (double) panelW / panelH;
          if (panelAspect > targetAspect) {
              viewportH = panelH;
              viewportW = (int) (panelH * targetAspect);
-             offsetX = (panelW - viewportW) / 2;
-             offsetY = 0;
          } else {
              viewportW = panelW;
              viewportH = (int) (panelW / targetAspect);
-             offsetX = 0;
-             offsetY = (panelH - viewportH) / 2;
          }
-         this.referentiel = new Referentiel(offsetX + viewportW/2.0,
-                 offsetY + viewportH/2.0);
+         this.referentiel = new Referentiel(
+                 (double) panelW/2,
+                 (double) panelH/2
+         );
          this.viewHeight = viewportH;
          this.viewWidth = viewportW;
          renderingEngine.resize(viewportW, viewportH);
