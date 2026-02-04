@@ -54,10 +54,10 @@ public class Main extends JFrame {
         List<Mesh> forms = new ArrayList<>();
         for (int i = -10; i < 10; i++) {
             for (int j = -10; j < 10; j++) {
-//                for(int k = -10; k < 10; k++) {
-//                    forms.add(cubeFactory.buildAt(new Vertex(i * cubeSize, j * cubeSize, k * cubeSize)));
-//                }
-                forms.add(cubeFactory.buildAt(new Vertex(i * cubeSize, 0, j * cubeSize)));
+                for(int k = -10; k < 10; k++) {
+                    forms.add(cubeFactory.buildAt(new Vertex(i * cubeSize, j * cubeSize, k * cubeSize)));
+                }
+//                forms.add(cubeFactory.buildAt(new Vertex(i * cubeSize, 0, j * cubeSize)));
             }
         }
          // forms.add(cubeFactory.buildAt(new Vertex(0,0,0)));

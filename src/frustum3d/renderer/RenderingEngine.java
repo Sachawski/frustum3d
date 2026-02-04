@@ -16,8 +16,8 @@ import frustum3d.utils.Matrix;
 import frustum3d.utils.Referentiel;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -36,10 +36,17 @@ public class RenderingEngine {
         this.ref = ref;
         this.height = height;
         this.width = width;
-        this.height = height;
         this.camera = camera;
     }
 
+    public double getWidth() {
+        return width;
+    }
+
+    public double getHeight() {
+        return height;
+    }
+    
     public void resize(int width, int height){
         this.width = width;
         this.height = height;
@@ -52,6 +59,9 @@ public class RenderingEngine {
     public BufferedImage wireFrameRendering(List<Mesh> meshes) {
         List<ClipLine> clipLines = new ArrayList<>();
         BufferedImage bufferedImage = new BufferedImage((int)width,(int)height,BufferedImage.TYPE_INT_ARGB);
+        int[] pixels = ((DataBufferInt) bufferedImage.getRaster().getDataBuffer()).getData();
+        int w = bufferedImage.getWidth();
+        int h = bufferedImage.getHeight();
         Matrix viewMatrix = camera.createViewMatrix();
         Matrix projectionMatrix = camera.createProjectionMatrix();
 
@@ -59,8 +69,7 @@ public class RenderingEngine {
             if (mesh instanceof CubeMesh cube) {
                 List<Vertex> vertices = mesh.getVertices();
                 List<Vertex> view = computeViewCoordinates(viewMatrix, vertices);
-
-
+                
                 int[][] edges = mesh.getEdges();
                 for (int edgeIndex = 0; edgeIndex < edges.length; edgeIndex++) {
                     int edgeFirstPointIndex = edges[edgeIndex][0];
@@ -84,29 +93,20 @@ public class RenderingEngine {
         List<Line> vertexLines = camera.toLineNDCSpace(clipLines);
 
         List<ScreenLine> screenLines = vertexLines.stream().map(vLine -> getEdgeScreenLine(vLine.from(), vLine.to())).toList();
-        // System.out.println(screenLines.size());
 
-        Graphics2D g2 = bufferedImage.createGraphics();
-        g2.setColor(Color.BLACK);
         for (ScreenLine line : screenLines) {
-            g2.drawLine(
-                    line.pixel1().x(),
-                    line.pixel1().y(),
-                    line.pixel2().x(),
-                    line.pixel2().y()
-            );
+            drawLine(line, pixels, w, h ,Color.BLACK.getRGB());
         }
-        g2.dispose();
         return bufferedImage;
     }
 
     public BufferedImage fullMeshRenderingOptimized(List<Mesh> meshes) {
         BufferedImage bufferedImage = new BufferedImage((int)width,(int)height,BufferedImage.TYPE_INT_ARGB);
-        int nbOfPolygon = 0;
+        int[] pixels = ((DataBufferInt) bufferedImage.getRaster().getDataBuffer()).getData();
+        int w = bufferedImage.getWidth();
+        int h = bufferedImage.getHeight();
         Matrix viewMatrix = camera.createViewMatrix();
         Matrix projectionMatrix = camera.createProjectionMatrix();
-
-        Graphics2D g2 = bufferedImage.createGraphics();
 
         for (Mesh mesh : meshes) {
             if (mesh instanceof CubeMesh cube) {
@@ -141,7 +141,6 @@ public class RenderingEngine {
                         continue;
                     }
 
-
                     List<ClipVertex> clippedVertices = camera.getClippedVertices(List.of(
                         projectionMatrix.multiplyClip(triangle3D.getP1()),
                         projectionMatrix.multiplyClip(triangle3D.getP2()),
@@ -165,38 +164,43 @@ public class RenderingEngine {
                     );
 
 
-
                     for (ScreenLine line : filling) {
-                        g2.setColor(cube.getColor());
-
-                        g2.drawLine(
-                                line.pixel1().x(),
-                                line.pixel1().y(),
-                                line.pixel2().x(),
-                                line.pixel2().y()
-                        );
+                        drawLine(line, pixels, w, h, line.color().getRGB());
                     }
-                    g2.setColor(Color.BLACK);
 
                     for (ScreenLine line : edgeLines) {
-
-                        g2.drawLine(
-                                line.pixel1().x(),
-                                line.pixel1().y(),
-                                line.pixel2().x(),
-                                line.pixel2().y()
-                        );
+                        drawLine(line, pixels, w, h, Color.BLACK.getRGB());
                     }
-                    nbOfPolygon++;
-
                 }
 
             }
         }
-        g2.dispose();
 
-        // System.out.println(nbOfPolygon);
         return bufferedImage;
+    }
+
+    private void drawLine(ScreenLine line, int[] pixels, int w, int h, int argb) {
+        int x0 = line.pixel1().x();
+        int y0 = line.pixel1().y();
+        int x1 = line.pixel2().x();
+        int y1 = line.pixel2().y();
+
+        int dx = Math.abs(x1 - x0);
+        int dy = Math.abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx - dy;
+
+        while (true) {
+            if ((x0 | y0) >= 0 && x0 < w && y0 < h) { // bounds check rapide
+                pixels[y0 * w + x0] = argb;
+            }
+            if (x0 == x1 && y0 == y1) break;
+
+            int e2 = err << 1;
+            if (e2 > -dy) { err -= dy; x0 += sx; }
+            if (e2 <  dx) { err += dx; y0 += sy; }
+        }
     }
 
     private List<ClipTriangle> fanTriangulation(List<ClipVertex> polygon) {
