@@ -1,6 +1,6 @@
-package frustum3d.core;
+package frustum3d.core.screen;
 
-public record Pixel(int x, int y) {
+public record Pixel(int x, int y, double depth) {
 
     @Override
     public String toString() {

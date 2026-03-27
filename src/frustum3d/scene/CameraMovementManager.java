@@ -145,6 +145,7 @@ public class CameraMovementManager implements KeyListener, MouseListener, MouseM
     public void mousePressed(MouseEvent e) {
         double newMouseX = e.getX();
         double newMouseY = e.getY();
+        System.out.println(e.getY() + " " + e.getX());
         if (newMouseY == this.mouseY) {
             this.rotationMap.put("down", false);
         }

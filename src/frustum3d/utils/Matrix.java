@@ -1,6 +1,7 @@
 package frustum3d.utils;
 
-import frustum3d.core.Vertex;
+import frustum3d.core.clip.ClipVertex;
+import frustum3d.core.view.Vertex;
 
 // MADE WITH AI FOR SIMPLICITY
 
@@ -12,13 +13,6 @@ public class Matrix {
         this.elements = new double[SIZE][SIZE];
     }
 
-    private Matrix(double[][] elements) {
-        this.elements = new double[SIZE][SIZE];
-        for (int i = 0; i < SIZE; i++) {
-            System.arraycopy(elements[i], 0, this.elements[i], 0, SIZE);
-        }
-    }
-
     public double get(int row, int col) {
         return elements[row][col];
     }
@@ -26,29 +20,6 @@ public class Matrix {
     public void set(int row, int col, double value) {
         elements[row][col] = value;
     }   
-     
-    public Matrix copyAndset(int row, int col, double value) {
-        double[][] newElements = deepCopy(elements);
-        newElements[row][col] = value;
-        return new Matrix(newElements);
-    }
-
-    public Matrix extract(int raw, int col, int height, int width) {
-        Matrix result = new Matrix();
-        if (raw+height > SIZE || col+width > SIZE) {
-            return Matrix.identity();
-        }
-        for (int i = raw; i < height; i++) {
-            for (int j = col ; j < width; j++) {
-                result.set(i-raw, j-col, this.get(i, j));
-            }
-        }
-        return result;
-    }
-
-    private double[][] deepCopy(double[][] matrix) {
-        return java.util.Arrays.stream(matrix).map(el -> el.clone()).toArray($ -> matrix.clone());
-    }
 
     public static Matrix identity() {
         Matrix matrix = new Matrix();
@@ -68,21 +39,20 @@ public class Matrix {
         return result;
     }
 
-    public Matrix multiply(Matrix other) {
-        Matrix result = new Matrix();
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                double sum = 0.0;
-                for (int k = 0; k < SIZE; k++) {
-                    sum += this.get(i, k) * other.get(k, j);
-                }
-                result.set(i, j, sum);
-            }
-        }
-        return result;
+    public Vertex multiply(Vertex point) {
+        double x = point.getX();
+        double y = point.getY();
+        double z = point.getZ();
+        double w = 1.0;
+
+        double newX = this.get(0, 0) * x + this.get(0, 1) * y + this.get(0, 2) * z + this.get(0, 3) * w;
+        double newY = this.get(1, 0) * x + this.get(1, 1) * y + this.get(1, 2) * z + this.get(1, 3) * w;
+        double newZ = this.get(2, 0) * x + this.get(2, 1) * y + this.get(2, 2) * z + this.get(2, 3) * w;
+
+        return new Vertex(newX, newY, newZ);
     }
 
-    public Vertex multiply(Vertex point) {
+    public ClipVertex multiplyClip(Vertex point) {
         double x = point.getX();
         double y = point.getY();
         double z = point.getZ();
@@ -93,56 +63,7 @@ public class Matrix {
         double newZ = this.get(2, 0) * x + this.get(2, 1) * y + this.get(2, 2) * z + this.get(2, 3) * w;
         double newW = this.get(3, 0) * x + this.get(3, 1) * y + this.get(3, 2) * z + this.get(3, 3) * w;
 
-        if (newW > 0.0) {
-            newX /= newW;
-            newY /= newW;
-            newZ /= newW;
-        } else {
-            newX = Double.NaN;
-            newY = Double.NaN;
-            newZ = Double.NaN;
-        }
-
-        return new Vertex(newX, newY, newZ);
-    }
-
-    public static Matrix rotationX(double angleRadians) {
-        Matrix matrix = Matrix.identity();
-        double cos = Math.cos(angleRadians);
-        double sin = Math.sin(angleRadians);
-        
-        matrix.set(1, 1, cos);
-        matrix.set(1, 2, -sin);
-        matrix.set(2, 1, sin);
-        matrix.set(2, 2, cos);
-        
-        return matrix;
-    }
-
-    public static Matrix rotationY(double angleRadians) {
-        Matrix matrix = Matrix.identity();
-        double cos = Math.cos(angleRadians);
-        double sin = Math.sin(angleRadians);
-        
-        matrix.set(0, 0, cos);
-        matrix.set(0, 2, sin);
-        matrix.set(2, 0, -sin);
-        matrix.set(2, 2, cos);
-        
-        return matrix;
-    }
-
-    public static Matrix rotationZ(double angleRadians) {
-        Matrix matrix = Matrix.identity();
-        double cos = Math.cos(angleRadians);
-        double sin = Math.sin(angleRadians);
-        
-        matrix.set(0, 0, cos);
-        matrix.set(0, 1, -sin);
-        matrix.set(1, 0, sin);
-        matrix.set(1, 1, cos);
-        
-        return matrix;
+        return new ClipVertex(newX, newY, newZ, newW);
     }
 
     public static Matrix perspective(double fovDegrees, double aspectRatio, double nearPlane, double farPlane) {

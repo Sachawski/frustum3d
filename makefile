@@ -2,4 +2,4 @@ build:
 	javac src/*/*.java -d classes
 
 build-frustum:
-	javac -d classes src/graphicx/*.java src/graphicx/*/*.java
+	javac -d classes src/frustum3d/*.java src/frustum3d/*/*.java

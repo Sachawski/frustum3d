@@ -1,16 +1,32 @@
 package frustum3d.scene;
 
-import frustum3d.core.Vertex;
+import frustum3d.core.clip.ClipLine;
+import frustum3d.core.clip.ClipTriangle;
+import frustum3d.core.clip.ClipVertex;
+import frustum3d.core.view.Line;
+import frustum3d.core.view.Triangle3D;
+import frustum3d.core.view.Vertex;
 import frustum3d.utils.Matrix;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Camera {
 
     public Vertex position;
     private double yaw;
     private double pitch;
-    private final double width;
-    private final double height;
-
+    private final double aspectRatio; // square window
+    private final double fovDegrees;
+    private final double nearPlane;  // prevent division by zero
+    private final double farPlane; // cull distant objects 
+    private static final double[][] planes = {
+                                    {  1,  0,  0,  1 }, // left   :  x + w
+                                    { -1,  0,  0,  1 }, // right  : -x + w
+                                    {  0,  1,  0,  1 }, // bottom :  y + w
+                                    {  0, -1,  0,  1 }, // top    : -y + w
+                                    {  0,  0,  1,  1 }, // near   :  z + w
+                                    {  0,  0, -1,  1 }  // far    : -z + w
+                                };
 
     private static final Vertex worldUp = new Vertex(0,1,0);
 
@@ -18,20 +34,14 @@ public class Camera {
         this.position = new Vertex(posX, posY, posZ);
         this.yaw = yaw;
         this.pitch = pitch;
-        this.width = width;
-        this.height = heigth;
+        this.aspectRatio = (double) 16 /9;
+        this.fovDegrees = 60.0;
+        this.nearPlane = 1;
+        this.farPlane = 100000.0;
     }
 
-    public void moveUp() {
-        Vertex forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
-        Vertex rightVector = rightVector(forwardVector);
-        this.position = this.position.add(upVector(rightVector, forwardVector).scale(50));
-    }
-
-    public void moveDown() {
-        Vertex forwardVector = forwardVector(Math.toRadians(yaw), Math.toRadians(pitch));
-        Vertex rightVector = rightVector(forwardVector);
-        this.position = this.position.add(upVector(rightVector, forwardVector).scale(-50));
+    public double getAspectRatio() {
+        return aspectRatio;
     }
 
     public void moveWorldUp() {
@@ -75,184 +85,17 @@ public class Camera {
     }
 
     public void rotateRight(){
-        if (pitch < 89) {
-            yaw = yaw + 1;
-        }
+        yaw = yaw + 1;
     }
 
     public void rotateLeft(){
-        if (pitch > -89) {
-            yaw = yaw - 1;
-        }
+        yaw = yaw - 1;
     }
 
-    public Matrix createMVPMatrix() {
-        Matrix projection = createProjectionMatrix();
-
-        Matrix view = createViewMatrix(
-            position.getX(),
-            position.getY(),
-            position.getZ(),
-            yaw,
-            pitch
-        );
-        Matrix model = Matrix.identity(); // objects don't move
-        
-        return projection.multiply(view).multiply(model);
-    }
-
-    public boolean isPointBehindCamera(Vertex point) {
-        return Double.isNaN(point.getX()) || 
-               Double.isNaN(point.getY()) || 
-               Double.isNaN(point.getZ());
-    }
-
-    public Vertex[] clipLine(Vertex p1, Vertex p2) {
-        if (isPointBehindCamera(p1) && isPointBehindCamera(p2)) {
-            return null;
-        }
-        
-        double x1 = p1.getX(), y1 = p1.getY(), z1 = p1.getZ();
-        double x2 = p2.getX(), y2 = p2.getY(), z2 = p2.getZ();
-        
-        double dx = x2 - x1;
-        double dy = y2 - y1;
-        double dz = z2 - z1;
-        
-        double tNear = 0.0;
-        double tFar = 1.0;
-        
-        double[] p = {x1, y1, z1};
-        double[] d = {dx, dy, dz};
-        double[] bounds = {-1, -1, -1};
-        double[] bounds2 = {1, 1, 1};
-        
-        for (int i = 0; i < 3; i++) {
-            if (Math.abs(d[i]) < 1e-10) {
-                if (p[i] < bounds[i] || p[i] > bounds2[i]) {
-                    return null;
-                }
-            } else {
-                double t1 = (bounds[i] - p[i]) / d[i];
-                double t2 = (bounds2[i] - p[i]) / d[i];
-                
-                if (t1 > t2) {
-                    double temp = t1;
-                    t1 = t2;
-                    t2 = temp;
-                }
-                
-                tNear = Math.max(tNear, t1);
-                tFar = Math.min(tFar, t2);
-                
-                if (tNear > tFar) {
-                    return null;
-                }
-            }
-        }
-        
-        if (tNear > 1.0 || tFar < 0.0) {
-            return null;
-        }
-        
-        tNear = Math.max(0.0, tNear);
-        tFar = Math.min(1.0, tFar);
-        
-        if (tNear == tFar) {
-            return null;
-        }
-        
-        Vertex clippedP1 = new Vertex(
-            x1 + tNear * dx,
-            y1 + tNear * dy,
-            z1 + tNear * dz
-        );
-        
-        Vertex clippedP2 = new Vertex(
-            x1 + tFar * dx,
-            y1 + tFar * dy,
-            z1 + tFar * dz
-        );
-        
-        return new Vertex[] {clippedP1, clippedP2};
-    }
-    
-    public boolean isFaceFrontFacing(int[] faceVertices, Vertex[] transformedPoints) {
-        // Get 3 vertices of the face (first 3 define the plane)
-        Vertex v0 = transformedPoints[faceVertices[0]];
-        Vertex v1 = transformedPoints[faceVertices[1]];
-        Vertex v2 = transformedPoints[faceVertices[2]];
-        
-        // Calculate face normal using cross product
-        Vertex edge1 = v1.substract(v0);
-        Vertex edge2 = v2.substract(v0);
-        Vertex normal = edge1.vectorialProduct(edge2);
-        
-        // Calculate face center
-        Vertex faceCenter = new Vertex(
-            (v0.getX() + v1.getX() + v2.getX()) / 3.0,
-            (v0.getY() + v1.getY() + v2.getY()) / 3.0,
-            (v0.getZ() + v1.getZ() + v2.getZ()) / 3.0
-        );
-        
-        // Vector from camera to face center
-        Vertex viewVector = faceCenter;
-        
-        // Dot product: if positive, face is back-facing (normal points away from camera)
-        double dotProduct = normal.dot(viewVector);
-        
-        // If dot product < 0, normal points toward camera = front-facing
-        return dotProduct < 0;
-    }
-
-    public boolean isFaceFrontFacing(Vertex[] transformedPoints) {
-        // Get 3 vertices of the face (first 3 define the plane)
-        Vertex v0 = transformedPoints[0];
-        Vertex v1 = transformedPoints[1];
-        Vertex v2 = transformedPoints[2];
-        
-        // Calculate face normal using cross product
-        Vertex edge1 = v1.substract(v0);
-        Vertex edge2 = v2.substract(v0);
-        Vertex normal = edge1.vectorialProduct(edge2);
-        
-        // Calculate face center
-        Vertex faceCenter = new Vertex(
-            (v0.getX() + v1.getX() + v2.getX()) / 3.0,
-            (v0.getY() + v1.getY() + v2.getY()) / 3.0,
-            (v0.getZ() + v1.getZ() + v2.getZ()) / 3.0
-        );
-        
-        // Vector from camera to face center
-        Vertex viewVector = faceCenter;
-        
-        // Dot product: if positive, face is back-facing (normal points away from camera)
-        double dotProduct = normal.dot(viewVector);
-        
-        // If dot product < 0, normal points toward camera = front-facing
-        return dotProduct < 0;
-    }
-    
-    private Vertex forwardVector(double radianYaw, double radianPitch) {
-        return new Vertex(
-            Math.cos(radianPitch) * Math.sin(radianYaw),
-            Math.sin(radianPitch),
-            Math.cos(radianPitch) * Math.cos(radianYaw)
-        ).normalize();
-    }
-
-    private Vertex rightVector(Vertex forwardVector) {
-        return worldUp.vectorialProduct(forwardVector).normalize();
-    }
-
-    private Vertex upVector(Vertex rightVector, Vertex forwardVector) {
-        return forwardVector.vectorialProduct(rightVector).normalize();
-    }
-
-     private Matrix createViewMatrix(double posX, double  posY, double  posZ, double yawDeg, double pitchDeg) {
-        Vertex eye = new Vertex(posX, posY, posZ);
-        double yawRadian = Math.toRadians(yawDeg);
-        double pitchRadian = Math.toRadians(pitchDeg);
+    public Matrix createViewMatrix() {
+        Vertex eye = this.position;
+        double yawRadian = Math.toRadians(yaw);
+        double pitchRadian = Math.toRadians(pitch);
         // 1️⃣ Direction caméra
         Vertex forward = forwardVector(yawRadian, pitchRadian);
 
@@ -282,13 +125,174 @@ public class Camera {
         return view;
     }
     
-    private Matrix createProjectionMatrix() {
-        double aspectRatio = this.width/this.height; // square window
-        double fovDegrees = 60.0;
-        double nearPlane = 1;  // prevent division by zero
-        double farPlane = 100000.0; // cull distant objects
-        
+    public Matrix createProjectionMatrix() {        
         return Matrix.perspective(fovDegrees, aspectRatio, nearPlane, farPlane);
+    }
+
+    
+    public boolean isFaceFrontFacing(int[] faceVertices, Vertex[] transformedPoints) {
+        // Get 3 vertices of the face (first 3 define the plane)
+        Vertex v0 = transformedPoints[faceVertices[0]];
+        Vertex v1 = transformedPoints[faceVertices[1]];
+        Vertex v2 = transformedPoints[faceVertices[2]];
+        
+        // Calculate face normal using cross product
+        Vertex edge1 = v1.substract(v0);
+        Vertex edge2 = v2.substract(v0);
+        Vertex normal = edge1.vectorialProduct(edge2);
+        
+        // Vector from camera to face center
+        Vertex viewVector = new Vertex(
+                (v0.getX() + v1.getX() + v2.getX()) / 3.0,
+                (v0.getY() + v1.getY() + v2.getY()) / 3.0,
+                (v0.getZ() + v1.getZ() + v2.getZ()) / 3.0
+        );
+        
+        // Dot product: if positive, face is back-facing (normal points away from camera)
+        double dotProduct = normal.dot(viewVector);
+        
+        // If dot product > 0, normal points toward camera = front-facing
+        return dotProduct > 0;
+    }
+
+    public List<ClipLine> getClippedLineOptimized(List<ClipLine> lines) {
+        List<ClipLine> result = new ArrayList<>();
+        double eps = 1e-10;
+        for (ClipLine line : lines) {
+            ClipVertex p0 = line.from();
+            ClipVertex p1 = line.to();
+            double tEnter = 0.0;
+            double tExit = 1.0;
+            boolean isLineRejected = false;
+            double x0 = p0.getX();
+            double y0 = p0.getY();
+            double z0 = p0.getZ();
+            double w0 = p0.getW();
+            double x1 = p1.getX();
+            double y1 = p1.getY();
+            double z1 = p1.getZ();
+            double w1 = p1.getW();
+
+            for (double[] plane : planes) {
+                double f0 = plane[0]*x0 + plane[1]*y0 + plane[2]*z0 + plane[3]*w0;
+                double f1 = plane[0]*x1 + plane[1]*y1 + plane[2]*z1 + plane[3]*w1;
+                double fd = f1 - f0;
+                if ((Math.abs(fd) < eps)) {
+                    if (f0 < 0) {
+                        isLineRejected = true;
+                        break;
+                    }
+                    continue;
+                }
+                double t = - f0/fd;
+                if (fd > 0) {
+                    tEnter = Math.max(tEnter, t);
+                } else {
+                    tExit = Math.min(tExit, t);
+                }
+                if (tEnter > tExit) {
+                    isLineRejected = true;
+                    break;
+                }
+            }
+
+            ClipVertex c0 = p0.lerp(p1, tEnter);
+            ClipVertex c1 = p0.lerp(p1, tExit);
+            if (!isLineRejected) {
+               result.add(new ClipLine(c0, c1));
+            }
+        }
+        return result;
+    }
+
+    public List<ClipVertex> getClippedVertices(List<ClipVertex> vertices) {
+        ClipVertex curr;
+        ClipVertex prev;
+        for (double[] plane : planes) {
+            List<ClipVertex> output = new ArrayList<>();
+            prev = vertices.getLast();
+            boolean prevInside = inside(plane, prev);
+            for (ClipVertex vertex : vertices) {
+                curr = vertex;
+                boolean currInside = inside(plane, curr);
+                if (currInside && prevInside) {
+                    output.add(curr);
+                } else if (currInside) {
+                    output.add(prev.lerp(curr, planIntersection(plane, prev, curr)));
+                    output.add(curr);
+                } else if (prevInside) {
+                    output.add(prev.lerp(curr, planIntersection(plane, prev, curr)));
+                }
+                prev = curr;
+                prevInside = currInside;
+            }
+            vertices = output;
+            if (vertices.isEmpty()) {
+                break;
+            }
+        }
+        if (!vertices.isEmpty()) {
+            vertices.add(vertices.getFirst());
+        }
+        return vertices;
+//        List<ClipVertex> finalVertices = vertices;
+//        return IntStream.range(0, vertices.size()-1).mapToObj(i -> new ClipLine(finalVertices.get(i), finalVertices.get(i+1))).toList();
+    }
+
+    private boolean inside(double[] plane, ClipVertex vertex) {
+        return (plane[0]*vertex.getX() +
+                plane[1]*vertex.getY() +
+                plane[2]*vertex.getZ() +
+                plane[3]*vertex.getW() >= 0);
+    }
+
+    private double planIntersection(double[] plane, ClipVertex vertex1, ClipVertex vertex2 ) {
+        double f0 = plane[0]*vertex1.getX() +
+                plane[1]*vertex1.getY() +
+                plane[2]*vertex1.getZ() +
+                plane[3]*vertex1.getW();
+        double f1 = plane[0]*vertex2.getX() +
+                plane[1]*vertex2.getY() +
+                plane[2]*vertex2.getZ() +
+                plane[3]*vertex2.getW();
+        return f0 / (f0 - f1);
+    }
+
+    public List<Line> toLineNDCSpace(List<ClipLine> clippedLines) {
+        return clippedLines.stream().map( clippedLine -> {
+            double fromX = clippedLine.from().getX();
+            double fromY = clippedLine.from().getY();
+            double fromZ = clippedLine.from().getZ();            
+            double fromW = clippedLine.from().getW();
+            double toX = clippedLine.to().getX();
+            double toY = clippedLine.to().getY();
+            double toZ = clippedLine.to().getZ();
+            double toW = clippedLine.to().getW();
+            return new Line(new Vertex(fromX/fromW, fromY/fromW, fromZ/fromW), new Vertex(toX/toW, toY/toW, toZ/toW));
+        }).toList();
+    }
+
+    public Triangle3D toVertexNDCSpace(ClipTriangle triangle) {
+        ClipVertex a = triangle.a();
+        ClipVertex b = triangle.b();
+        ClipVertex c = triangle.c();
+        return new Triangle3D(
+            new Vertex(a.getX()/a.getW(), a.getY()/a.getW(), a.getZ()/a.getW()),
+            new Vertex(b.getX()/b.getW(), b.getY()/b.getW(), b.getZ()/b.getW()),
+            new Vertex(c.getX()/c.getW(), c.getY()/c.getW(), c.getZ()/c.getW())
+        );
+    }
+    
+    private Vertex forwardVector(double radianYaw, double radianPitch) {
+        return new Vertex(
+            Math.cos(radianPitch) * Math.sin(radianYaw),
+            Math.sin(radianPitch),
+            Math.cos(radianPitch) * Math.cos(radianYaw)
+        ).normalize();
+    }
+
+    private Vertex rightVector(Vertex forwardVector) {
+        return worldUp.vectorialProduct(forwardVector).normalize();
     }
 
 }

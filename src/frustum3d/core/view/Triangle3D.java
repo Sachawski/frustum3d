@@ -1,12 +1,12 @@
-package frustum3d.core;
+package frustum3d.core.view;
 
-public class Triangle {
+public class Triangle3D {
 
     private Vertex p1;
     private Vertex p2;
     private Vertex p3;
 
-    public Triangle(Vertex p1, Vertex p2, Vertex p3) {
+    public Triangle3D(Vertex p1, Vertex p2, Vertex p3) {
         this.p1 = p1;
         this.p2 = p2;
         this.p3 = p3;
